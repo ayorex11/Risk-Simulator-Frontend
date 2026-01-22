@@ -1,0 +1,77 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import authService from '../services/authService'
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path: '/',
+      name: 'Landing',
+      component: () => import('../views/LandingView.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: () => import('../views/auth/LoginView.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: () => import('../views/auth/LoginView.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/register',
+      name: 'Register',
+      component: () => import('../views/auth/RegisterView.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/verify-email/:token',
+      name: 'VerifyEmail',
+      component: () => import('../views/auth/VerifyEmailView.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/forgot-password',
+      name: 'ForgotPassword',
+      component: () => import('../views/auth/ForgotPasswordView.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/reset-password/:token',
+      name: 'ResetPassword',
+      component: () => import('../views/auth/ResetPasswordView.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/dashboard',
+      name: 'Dashboard',
+      component: () => import('../views/DashboardView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/profile',
+      name: 'Profile',
+      component: () => import('../views/ProfileView.vue'),
+      meta: { requiresAuth: true }
+    }
+  ]
+})
+
+// Navigation guards
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = authService.isAuthenticated()
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next('/login')
+  } else if (to.meta.requiresGuest && isAuthenticated) {
+    next('/dashboard')
+  } else {
+    next()
+  }
+})
+
+export default router
