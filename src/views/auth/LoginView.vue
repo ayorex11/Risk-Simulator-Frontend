@@ -24,15 +24,26 @@
 
           <div class="form-group">
             <label for="password" class="form-label">Password</label>
-            <input
-              id="password"
-              v-model="formData.password"
-              type="password"
-              class="form-input"
-              :class="{ error: errors.password }"
-              placeholder="Enter your password"
-              required
-            />
+            <div class="password-input-wrapper">
+              <input
+                id="password"
+                v-model="formData.password"
+                :type="showPassword ? 'text' : 'password'"
+                class="form-input"
+                :class="{ error: errors.password }"
+                placeholder="Enter your password"
+                required
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="password-toggle"
+                tabindex="-1"
+              >
+                <Eye v-if="!showPassword" class="toggle-icon" />
+                <EyeOff v-else class="toggle-icon" />
+              </button>
+            </div>
             <span v-if="errors.password" class="form-error">{{ errors.password }}</span>
           </div>
 
@@ -68,6 +79,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { validateEmail } from '../../utils/validators'
+import { Eye, EyeOff } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -81,6 +93,8 @@ const errors = ref({
   email: '',
   password: ''
 })
+
+const showPassword = ref(false)
 
 const validateForm = () => {
   errors.value = {}
@@ -150,6 +164,35 @@ const handleLogin = async () => {
 
 .auth-form {
   margin-bottom: 24px;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.3s;
+}
+
+.password-toggle:hover {
+  color: #3b82f6;
+}
+
+.toggle-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .form-footer {

@@ -35,6 +35,9 @@ export default {
   // Verify email
   async verifyEmail(token) {
     const response = await api.post(`/auth/verify-email/${token}/`)
+    if (response.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.user))
+    }
     return response.data
   },
 
@@ -76,6 +79,7 @@ export default {
   // Get user profile
   async getProfile() {
     const response = await api.get('/auth/profile/')
+    localStorage.setItem('user', JSON.stringify(response.data))
     return response.data
   },
 

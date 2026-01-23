@@ -49,30 +49,52 @@
 
           <div class="form-group">
             <label for="password" class="form-label">Password</label>
-            <input
-              id="password"
-              v-model="formData.password"
-              type="password"
-              class="form-input"
-              :class="{ error: errors.password }"
-              placeholder="Create a password"
-              required
-            />
+            <div class="password-input-wrapper">
+              <input
+                id="password"
+                v-model="formData.password"
+                :type="showPassword ? 'text' : 'password'"
+                class="form-input"
+                :class="{ error: errors.password }"
+                placeholder="Create a password"
+                required
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="password-toggle"
+                tabindex="-1"
+              >
+                <Eye v-if="!showPassword" class="toggle-icon" />
+                <EyeOff v-else class="toggle-icon" />
+              </button>
+            </div>
             <span class="form-hint">Must be at least 8 characters</span>
             <span v-if="errors.password" class="form-error">{{ errors.password }}</span>
           </div>
 
           <div class="form-group">
             <label for="password2" class="form-label">Confirm Password</label>
-            <input
-              id="password2"
-              v-model="formData.password2"
-              type="password"
-              class="form-input"
-              :class="{ error: errors.password2 }"
-              placeholder="Confirm your password"
-              required
-            />
+            <div class="password-input-wrapper">
+              <input
+                id="password2"
+                v-model="formData.password2"
+                :type="showPassword2 ? 'text' : 'password'"
+                class="form-input"
+                :class="{ error: errors.password2 }"
+                placeholder="Confirm your password"
+                required
+              />
+              <button
+                type="button"
+                @click="showPassword2 = !showPassword2"
+                class="password-toggle"
+                tabindex="-1"
+              >
+                <Eye v-if="!showPassword2" class="toggle-icon" />
+                <EyeOff v-else class="toggle-icon" />
+              </button>
+            </div>
             <span v-if="errors.password2" class="form-error">{{ errors.password2 }}</span>
           </div>
 
@@ -102,6 +124,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { validateEmail, validatePassword, validatePasswordMatch } from '../../utils/validators'
+import { Eye, EyeOff } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -115,6 +138,8 @@ const formData = ref({
 })
 
 const errors = ref({})
+const showPassword = ref(false)
+const showPassword2 = ref(false)
 
 const validateForm = () => {
   errors.value = {}
@@ -199,6 +224,35 @@ const handleRegister = async () => {
 
 .auth-form {
   margin-bottom: 24px;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.3s;
+}
+
+.password-toggle:hover {
+  color: #3b82f6;
+}
+
+.toggle-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .auth-footer {

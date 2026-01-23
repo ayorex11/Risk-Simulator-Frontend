@@ -17,12 +17,6 @@ const router = createRouter({
       meta: { requiresGuest: true }
     },
     {
-      path: '/login',
-      name: 'Login',
-      component: () => import('../views/auth/LoginView.vue'),
-      meta: { requiresGuest: true }
-    },
-    {
       path: '/register',
       name: 'Register',
       component: () => import('../views/auth/RegisterView.vue'),
@@ -56,6 +50,24 @@ const router = createRouter({
       path: '/profile',
       name: 'Profile',
       component: () => import('../views/ProfileView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/vendors',
+      name: 'Vendors',
+      component: () => import('../views/VendorsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/vendors/new',
+      name: 'VendorNew',
+      component: () => import('../views/VendorCreateView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/vendors/:id',
+      name: 'VendorDetail',
+      component: () => import('../views/VendorDetailView.vue'),
       meta: { requiresAuth: true }
     }
   ]
