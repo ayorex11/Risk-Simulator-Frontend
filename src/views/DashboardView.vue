@@ -6,7 +6,9 @@
         <div class="dashboard-header">
           <div>
             <h1>Dashboard</h1>
-            <p class="text-muted">Welcome back, {{ currentUser?.first_name || currentUser?.email }}!</p>
+            <p class="text-muted">
+              Welcome back, {{ currentUser?.first_name || currentUser?.email }}!
+            </p>
           </div>
           <div class="header-actions">
             <button v-if="!hasOrganization" @click="showOrgModal = true" class="btn btn-primary">
@@ -36,17 +38,18 @@
           <!-- Summary Stats -->
           <div class="stats-grid">
             <div class="stat-card">
-              <div class="stat-icon" style="background: #dbeafe; color: #2563eb;">
+              <div class="stat-icon" style="background: #dbeafe; color: #2563eb">
                 <Building />
               </div>
               <div>
                 <p class="stat-label">Total Vendors</p>
                 <p class="stat-value">{{ dashboardData?.summary?.total_vendors || 0 }}</p>
+                <p class="stat-subtext">{{ dashboardData?.summary?.active_vendors || 0 }} active</p>
               </div>
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon" style="background: #fee2e2; color: #dc2626;">
+              <div class="stat-icon" style="background: #fee2e2; color: #dc2626">
                 <AlertTriangle />
               </div>
               <div>
@@ -56,7 +59,7 @@
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon" style="background: #fef3c7; color: #d97706;">
+              <div class="stat-icon" style="background: #fef3c7; color: #d97706">
                 <Zap />
               </div>
               <div>
@@ -66,12 +69,48 @@
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon" style="background: #d1fae5; color: #059669;">
+              <div class="stat-icon" style="background: #d1fae5; color: #059669">
                 <TrendingUp />
               </div>
               <div>
                 <p class="stat-label">Avg Risk Score</p>
-                <p class="stat-value">{{ Math.round(dashboardData?.summary?.average_risk_score || 0) }}</p>
+                <p class="stat-value">
+                  {{ Math.round(dashboardData?.summary?.average_risk_score || 0) }}
+                </p>
+              </div>
+            </div>
+
+            <!-- New Stats -->
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #e0e7ff; color: #4338ca">
+                <DollarSign />
+              </div>
+              <div>
+                <p class="stat-label">Estimated Impact</p>
+                <p class="stat-value">
+                  ${{ formatNumber(dashboardData?.summary?.total_estimated_impact) }}
+                </p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #ffedd5; color: #9a3412">
+                <Activity />
+              </div>
+              <div>
+                <p class="stat-label">Recent Incidents</p>
+                <p class="stat-value">{{ dashboardData?.summary?.recent_incidents || 0 }}</p>
+                <p class="stat-subtext">Last 6 months</p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #f3e8ff; color: #7e22ce">
+                <ClipboardCheck />
+              </div>
+              <div>
+                <p class="stat-label">Pending Assessments</p>
+                <p class="stat-value">{{ dashboardData?.summary?.pending_assessments || 0 }}</p>
               </div>
             </div>
           </div>
@@ -87,10 +126,14 @@
                 <p>No high-risk vendors identified</p>
               </div>
               <div v-else class="vendor-list">
-                <div v-for="vendor in dashboardData?.high_risk_vendors" :key="vendor.id" class="vendor-item">
+                <div
+                  v-for="vendor in dashboardData?.high_risk_vendors"
+                  :key="vendor.id"
+                  class="vendor-item"
+                >
                   <div class="vendor-info">
                     <h3>{{ vendor.name }}</h3>
-                    <p>{{ vendor.industry }} • {{ vendor.service_type }}</p>
+                    <p>{{ vendor.industry }}</p>
                   </div>
                   <div class="risk-badge" :class="getRiskClass(vendor.overall_risk_score)">
                     {{ vendor.overall_risk_score }}
@@ -111,7 +154,11 @@
                 <p>No simulations run yet</p>
               </div>
               <div v-else class="simulation-list">
-                <div v-for="sim in dashboardData?.recent_simulations" :key="sim.id" class="simulation-item">
+                <div
+                  v-for="sim in dashboardData?.recent_simulations"
+                  :key="sim.id"
+                  class="simulation-item"
+                >
                   <div class="simulation-info">
                     <h3>{{ sim.scenario_type }}</h3>
                     <p>{{ formatDate(sim.completed_at) }}</p>
@@ -156,19 +203,33 @@
       @close="showOrgModal = false"
       @created="handleOrgCreated"
     />
+
+    <!-- Join Organization Modal -->
+    <JoinOrganizationModal
+      v-if="showJoinModal"
+      @close="showJoinModal = false"
+      @requested="handleJoinRequested"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useCoreStore } from '../stores/core'
-import { useAuthStore } from '../stores/auth'
 import NavBar from '../components/common/NavBar.vue'
 import CreateOrganizationModal from '../components/core/CreateOrganizationModal.vue'
-import { Building, AlertTriangle, Zap, TrendingUp } from 'lucide-vue-next'
+import JoinOrganizationModal from '../components/core/JoinOrganizationModal.vue'
+import {
+  Building,
+  AlertTriangle,
+  Zap,
+  TrendingUp,
+  DollarSign,
+  Activity,
+  ClipboardCheck,
+} from 'lucide-vue-next'
 
 const coreStore = useCoreStore()
-const authStore = useAuthStore()
 
 const showOrgModal = ref(false)
 const showJoinModal = ref(false)
@@ -189,7 +250,7 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
@@ -204,6 +265,12 @@ const handleOrgCreated = async () => {
   await coreStore.fetchDashboard()
 }
 
+const handleJoinRequested = async () => {
+  showJoinModal.value = false
+  // Refresh user data to show pending status if applicable
+  await coreStore.fetchCurrentUser()
+}
+
 onMounted(async () => {
   await coreStore.fetchCurrentUser()
   await coreStore.fetchPermissions()
@@ -211,7 +278,7 @@ onMounted(async () => {
   try {
     await coreStore.fetchOrganization()
     await coreStore.fetchDashboard()
-  } catch (error) {
+  } catch {
     // User might not have an organization yet
     console.log('No organization found')
   }
@@ -283,7 +350,7 @@ onMounted(async () => {
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
   margin-bottom: 32px;
 }

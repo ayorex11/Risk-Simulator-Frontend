@@ -25,12 +25,18 @@
           <ClipboardList class="nav-icon" />
           Assessments
         </router-link>
+        <router-link v-if="isAdmin" to="/organization/settings" class="nav-link">
+          <Building class="nav-icon" />
+          Organization
+        </router-link>
 
         <div class="navbar-user">
-          <div class="user-info">
-            <span class="user-name">{{ authStore.user?.first_name || authStore.user?.email }}</span>
+          <router-link to="/profile" class="user-info">
+            <span class="user-name">{{
+              coreStore.currentUser?.first_name || coreStore.currentUser?.email
+            }}</span>
             <span class="user-role">{{ userRole }}</span>
-          </div>
+          </router-link>
           <button @click="handleLogout" class="btn btn-secondary btn-sm">
             <LogOut class="icon" />
             Logout
@@ -51,6 +57,8 @@ import { Shield, LayoutDashboard, Building, Zap, ClipboardList, LogOut } from 'l
 const authStore = useAuthStore()
 const coreStore = useCoreStore()
 const router = useRouter()
+
+const isAdmin = computed(() => ['admin', 'manager'].includes(coreStore.permissions?.role))
 
 const userRole = computed(() => {
   const role = coreStore.permissions?.role
@@ -162,6 +170,15 @@ const handleLogout = async () => {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.user-info:hover {
+  background: #f3f4f6;
 }
 
 .user-name {

@@ -8,7 +8,7 @@ export default {
   },
 
   async updateCurrentUser(userData) {
-    const response = await api.put('/core/users/me/update/', userData)
+    const response = await api.patch('/core/users/me/update/', userData)
     return response.data
   },
 
@@ -23,7 +23,12 @@ export default {
   },
 
   async updateUser(userId, userData) {
-    const response = await api.put(`/core/users/${userId}/update/`, userData)
+    const response = await api.patch(`/core/users/${userId}/update/`, userData)
+    return response.data
+  },
+
+  async updateUserProfile(userId, profileData) {
+    const response = await api.patch(`/core/users/${userId}/profile/`, profileData)
     return response.data
   },
 
@@ -44,7 +49,7 @@ export default {
   },
 
   async updateOrganization(orgData) {
-    const response = await api.put('/core/organization/update/', orgData)
+    const response = await api.patch('/core/organization/update/', orgData)
     return response.data
   },
 
@@ -72,5 +77,10 @@ export default {
   async approveRequest(requestId) {
     const response = await api.post(`/core/organization/${requestId}/approve/`)
     return response.data
-  }
+  },
+
+  async listOrganizations(params = {}) {
+    const response = await api.get('/core/organizations/', { params })
+    return response.data
+  },
 }

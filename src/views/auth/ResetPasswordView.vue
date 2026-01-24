@@ -9,9 +9,7 @@
 
         <div v-if="resetSuccess" class="success-content text-center">
           <div class="success-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
+            <CheckCircle />
           </div>
           <h2>Password Reset Successful!</h2>
           <p class="text-muted mb-3">Your password has been reset successfully.</p>
@@ -23,30 +21,52 @@
         <form v-else @submit.prevent="handleResetPassword" class="auth-form">
           <div class="form-group">
             <label for="new_password" class="form-label">New Password</label>
-            <input
-              id="new_password"
-              v-model="formData.new_password"
-              type="password"
-              class="form-input"
-              :class="{ error: errors.new_password }"
-              placeholder="Enter new password"
-              required
-            />
+            <div class="password-input-wrapper">
+              <input
+                id="new_password"
+                v-model="formData.new_password"
+                :type="showPassword ? 'text' : 'password'"
+                class="form-input"
+                :class="{ error: errors.new_password }"
+                placeholder="Enter new password"
+                required
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="password-toggle"
+                tabindex="-1"
+              >
+                <Eye v-if="!showPassword" class="toggle-icon" />
+                <EyeOff v-else class="toggle-icon" />
+              </button>
+            </div>
             <span class="form-hint">Must be at least 8 characters</span>
             <span v-if="errors.new_password" class="form-error">{{ errors.new_password }}</span>
           </div>
 
           <div class="form-group">
             <label for="new_password2" class="form-label">Confirm New Password</label>
-            <input
-              id="new_password2"
-              v-model="formData.new_password2"
-              type="password"
-              class="form-input"
-              :class="{ error: errors.new_password2 }"
-              placeholder="Confirm new password"
-              required
-            />
+            <div class="password-input-wrapper">
+              <input
+                id="new_password2"
+                v-model="formData.new_password2"
+                :type="showPassword2 ? 'text' : 'password'"
+                class="form-input"
+                :class="{ error: errors.new_password2 }"
+                placeholder="Confirm new password"
+                required
+              />
+              <button
+                type="button"
+                @click="showPassword2 = !showPassword2"
+                class="password-toggle"
+                tabindex="-1"
+              >
+                <Eye v-if="!showPassword2" class="toggle-icon" />
+                <EyeOff v-else class="toggle-icon" />
+              </button>
+            </div>
             <span v-if="errors.new_password2" class="form-error">{{ errors.new_password2 }}</span>
           </div>
 
@@ -75,6 +95,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { validatePassword, validatePasswordMatch } from '../../utils/validators'
+import { Eye, EyeOff, CheckCircle } from 'lucide-vue-next'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -87,6 +108,8 @@ const formData = ref({
 const errors = ref({})
 const resetSuccess = ref(false)
 const token = ref('')
+const showPassword = ref(false)
+const showPassword2 = ref(false)
 
 onMounted(() => {
   token.value = route.params.token
@@ -169,6 +192,35 @@ const handleResetPassword = async () => {
 
 .auth-form {
   margin-bottom: 24px;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.3s;
+}
+
+.password-toggle:hover {
+  color: #3b82f6;
+}
+
+.toggle-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .auth-footer {
