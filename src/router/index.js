@@ -59,6 +59,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/vendors/compare',
+      name: 'VendorComparison',
+      component: () => import('../views/VendorComparisonView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/vendors/new',
       name: 'VendorNew',
       component: () => import('../views/VendorCreateView.vue'),
@@ -68,6 +74,12 @@ const router = createRouter({
       path: '/vendors/:id',
       name: 'VendorDetail',
       component: () => import('../views/VendorDetailView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/incidents/trends',
+      name: 'IncidentTrends',
+      component: () => import('../views/IncidentDashboardView.vue'),
       meta: { requiresAuth: true },
     },
     {

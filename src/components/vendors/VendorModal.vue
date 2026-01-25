@@ -88,7 +88,9 @@
               placeholder="Describe the services this vendor provides"
               required
             ></textarea>
-            <span v-if="errors.services_provided" class="form-error">{{ errors.services_provided }}</span>
+            <span v-if="errors.services_provided" class="form-error">{{
+              errors.services_provided
+            }}</span>
           </div>
         </div>
 
@@ -177,6 +179,47 @@
           </div>
         </div>
 
+        <!-- Dependency Information -->
+        <div class="form-section">
+          <h3 class="section-title">Supply Chain Dependencies</h3>
+          <div class="form-group">
+            <label class="form-label">Upstream Dependencies (Vendors this entity depends on)</label>
+            <div class="dependency-selector card shadow-sm">
+              <div v-if="availableVendors.length > 5" class="p-2 border-bottom">
+                <input
+                  v-model="depSearchQuery"
+                  type="text"
+                  placeholder="Search available vendors..."
+                  class="search-input-xs"
+                />
+              </div>
+              <div v-if="availableVendors.length === 0" class="p-8 text-center text-muted text-sm">
+                <div class="mb-2 opacity-50"><Building class="mx-auto" /></div>
+                No other vendors available to link as dependencies.
+              </div>
+              <div v-else class="dependency-grid">
+                <div v-for="v in availableVendors" :key="v.id" class="dep-checkbox-item">
+                  <label class="checkbox-label-sm">
+                    <input
+                      type="checkbox"
+                      :value="v.id"
+                      v-model="formData.dependent_vendors"
+                      class="form-checkbox-sm"
+                    />
+                    <div class="flex flex-col overflow-hidden">
+                      <span class="dep-name-txt truncate">{{ v.name }}</span>
+                      <span class="dep-industry-txt truncate">{{ v.industry }}</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <p class="form-hint text-xs mt-2">
+              Mapping these helps the risk simulator calculate cascading failure impacts.
+            </p>
+          </div>
+        </div>
+
         <!-- Risk Factors -->
         <div class="form-section">
           <h3 class="section-title">Risk Assessment Factors</h3>
@@ -262,7 +305,7 @@
 
             <div class="form-group">
               <label for="compliance_score" class="form-label">
-                Compliance Score (0-50)
+                Compliance Score (0-100)
                 <span class="label-hint">{{ formData.compliance_score }}</span>
               </label>
               <input
@@ -270,19 +313,19 @@
                 v-model.number="formData.compliance_score"
                 type="range"
                 min="0"
-                max="50"
+                max="100"
                 class="form-range"
               />
               <div class="range-labels">
                 <span>None (0)</span>
-                <span>Excellent (50)</span>
+                <span>Excellent (100)</span>
               </div>
             </div>
           </div>
 
           <div class="form-group">
             <label for="third_party_dependencies_score" class="form-label">
-              Third-Party Dependencies Risk (0-50)
+              Third-Party Dependencies Risk (0-100)
               <span class="label-hint">{{ formData.third_party_dependencies_score }}</span>
             </label>
             <input
@@ -290,12 +333,12 @@
               v-model.number="formData.third_party_dependencies_score"
               type="range"
               min="0"
-              max="50"
+              max="100"
               class="form-range"
             />
             <div class="range-labels">
               <span>Low Risk (0)</span>
-              <span>High Risk (50)</span>
+              <span>High Risk (100)</span>
             </div>
           </div>
         </div>
@@ -317,23 +360,17 @@
 
           <div class="form-group">
             <label class="checkbox-label">
-              <input
-                v-model="formData.is_active"
-                type="checkbox"
-                class="form-checkbox"
-              />
+              <input v-model="formData.is_active" type="checkbox" class="form-checkbox" />
               <span>Vendor is active</span>
             </label>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn btn-secondary">
-            Cancel
-          </button>
+          <button type="button" @click="$emit('close')" class="btn btn-secondary">Cancel</button>
           <button type="submit" class="btn btn-primary" :disabled="vendorStore.loading">
             <span v-if="vendorStore.loading" class="spinner"></span>
-            {{ vendorStore.loading ? 'Saving...' : (isEdit ? 'Update Vendor' : 'Create Vendor') }}
+            {{ vendorStore.loading ? 'Saving...' : isEdit ? 'Update Vendor' : 'Create Vendor' }}
           </button>
         </div>
       </form>
@@ -342,23 +379,34 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useVendorStore } from '../../stores/vendor'
-import { X } from 'lucide-vue-next'
+import { X, Building } from 'lucide-vue-next'
 
 const props = defineProps({
   vendor: {
     type: Object,
-    default: null
+    default: null,
   },
   isEdit: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 const emit = defineEmits(['close', 'save'])
 const vendorStore = useVendorStore()
+const depSearchQuery = ref('')
+
+const availableVendors = computed(() => {
+  return vendorStore.vendors
+    .filter((v) => v.id !== props.vendor?.id)
+    .filter((v) => {
+      if (!depSearchQuery.value) return true
+      const q = depSearchQuery.value.toLowerCase()
+      return v.name.toLowerCase().includes(q) || v.industry.toLowerCase().includes(q)
+    })
+})
 
 const formData = ref({
   name: '',
@@ -379,19 +427,34 @@ const formData = ref({
   compliance_score: 0,
   third_party_dependencies_score: 0,
   is_active: true,
-  notes: ''
+  notes: '',
+  dependent_vendors: [],
 })
 
 const errors = ref({})
 
-onMounted(() => {
+onMounted(async () => {
+  // Ensure vendors are available for dependency mapping
+  if (vendorStore.vendors.length === 0) {
+    await vendorStore.fetchVendors()
+  }
+
   if (props.isEdit && props.vendor) {
     // Populate form with existing vendor data
-    Object.keys(formData.value).forEach(key => {
+    Object.keys(formData.value).forEach((key) => {
       if (props.vendor[key] !== undefined) {
         formData.value[key] = props.vendor[key]
       }
     })
+
+    // Explicitly handle dependencies if they come as objects
+    if (props.vendor.dependent_vendors && props.vendor.dependent_vendors.length > 0) {
+      if (typeof props.vendor.dependent_vendors[0] === 'object') {
+        formData.value.dependent_vendors = props.vendor.dependent_vendors.map((v) => v.id)
+      } else {
+        formData.value.dependent_vendors = props.vendor.dependent_vendors
+      }
+    }
   }
 })
 
@@ -599,6 +662,75 @@ const handleSubmit = async () => {
   position: sticky;
   bottom: 0;
   background: white;
+}
+
+/* Dependency Selector */
+.dependency-selector {
+  margin-top: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 0;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-input-xs {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+  background: white;
+}
+
+.dependency-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  padding: 12px;
+}
+
+.dep-checkbox-item {
+  background: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.dep-checkbox-item:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.checkbox-label-sm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.form-checkbox-sm {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+.dep-name-txt {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  display: block;
+}
+
+.dep-industry-txt {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 @media (max-width: 768px) {

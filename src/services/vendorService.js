@@ -101,6 +101,16 @@ export default {
     return response.data
   },
 
+  async updateCertification(id, certData) {
+    const response = await api.patch(`/vendors/certifications/${id}/`, certData)
+    return response.data
+  },
+
+  async deleteCertification(id) {
+    const response = await api.delete(`/vendors/certifications/${id}/`)
+    return response.data
+  },
+
   // Contacts
   async getVendorContacts(vendorId) {
     const response = await api.get(`/vendors/${vendorId}/contacts/`)

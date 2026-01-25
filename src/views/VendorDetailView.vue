@@ -1,264 +1,441 @@
 <template>
-  <div>
+  <div class="page-container">
     <NavBar />
-    <div class="vendor-detail-page">
-      <div class="container">
-        <!-- Loading State -->
-        <div v-if="vendorStore.loading" class="loading-container">
+
+    <main class="vendor-detail-page py-8">
+      <div class="container overflow-visible">
+        <!-- Loading -->
+        <div v-if="vendorStore.loading && !currentVendor" class="flex justify-center py-20">
           <LoadingSpinner />
         </div>
 
-        <!-- Error State -->
-        <div v-else-if="!currentVendor" class="error-state card">
-          <AlertCircle class="error-icon" />
-          <h2>Vendor Not Found</h2>
-          <p>The vendor you're looking for doesn't exist or has been removed.</p>
-          <router-link to="/vendors" class="btn btn-primary"> Back to Vendors </router-link>
+        <!-- Error -->
+        <div v-else-if="!currentVendor" class="card glass p-20 text-center max-w-2xl mx-auto">
+          <AlertCircle class="large-icon text-red-500 mb-6 mx-auto" />
+          <h2 class="text-2xl font-black mb-4">Vendor Trace Lost</h2>
+          <p class="text-muted mb-8">
+            This vendor profile is no longer accessible or has been purged from the ecosystem.
+          </p>
+          <router-link to="/vendors" class="btn btn-primary lg">Return to Fleet</router-link>
         </div>
 
-        <!-- Vendor Details -->
-        <div v-else>
-          <div class="page-header">
+        <!-- Main View -->
+        <div v-else class="animate-in">
+          <!-- Premium Hero Section -->
+          <header class="vendor-hero mb-8">
+            <div class="hero-main card glass">
+              <div class="hero-left">
+                <router-link to="/vendors" class="back-pill mb-6">
+                  <ArrowLeft class="icon-xs" /> Back to Ecosystem
+                </router-link>
+                <div class="flex items-center gap-4 mb-2">
+                  <h1 class="text-4xl font-black tracking-tighter">{{ currentVendor.name }}</h1>
+                  <span
+                    class="status-indicator"
+                    :class="{ active: currentVendor.is_active }"
+                  ></span>
+                </div>
+                <div class="hero-tags">
+                  <span class="h-tag">{{ currentVendor.industry }}</span>
+                  <span class="h-tag">{{ currentVendor.country }}</span>
+                  <span class="h-tag-outline" v-if="currentVendor.is_active"
+                    >Active Production</span
+                  >
+                </div>
+              </div>
+
+              <div class="hero-right">
+                <div
+                  class="risk-summary-card"
+                  :class="getRiskClass(currentVendor.overall_risk_score)"
+                >
+                  <div class="r-val-big">
+                    {{ (currentVendor.overall_risk_score || 0).toFixed(3) }}
+                  </div>
+                  <div class="r-label-big">AGGREGATE RISK</div>
+                  <div class="r-status-big">
+                    {{ getRiskLevelText(currentVendor.overall_risk_score) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-actions-floating mt-4">
+              <div class="flex gap-3">
+                <button
+                  @click="recalculateRisk"
+                  class="btn btn-secondary shadow-sm"
+                  :disabled="vendorStore.loading"
+                >
+                  <RefreshCw class="icon-sm" :class="{ 'animate-spin': vendorStore.loading }" />
+                  Recalculate
+                </button>
+                <button @click="showEditModal = true" class="btn btn-primary shadow-lg">
+                  <Edit class="icon-sm" /> Edit Profile
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <!-- Tabs Interface -->
+          <section class="tab-system">
+            <div class="tabs-island glass mb-6">
+              <div class="tabs-inner">
+                <button
+                  v-for="tab in [
+                    'overview',
+                    'history',
+                    'supply-chain',
+                    'incidents',
+                    'compliance',
+                    'contacts',
+                  ]"
+                  :key="tab"
+                  @click="activeTab = tab"
+                  class="t-btn"
+                  :class="{ active: activeTab === tab }"
+                >
+                  {{ tab.charAt(0).toUpperCase() + tab.slice(1).replace('-', ' ') }}
+                </button>
+              </div>
+            </div>
+
+            <div class="tab-content card shadow-xl">
+              <!-- Overview Tab -->
+              <div v-if="activeTab === 'overview'" class="tab-grid animate-in-fast">
+                <div class="tab-col">
+                  <div class="section-title-premium">
+                    <Building class="icon-primary" /> Profile Details
+                  </div>
+                  <div class="data-group">
+                    <div class="data-item">
+                      <label>Primary Gateway</label>
+                      <a
+                        v-if="currentVendor.website"
+                        :href="currentVendor.website"
+                        target="_blank"
+                        class="link-premium"
+                      >
+                        {{ currentVendor.website }} <ExternalLink class="icon-xs" />
+                      </a>
+                      <span v-else class="val-muted">Unspecified</span>
+                    </div>
+                    <div class="data-item">
+                      <label>Domain of Service</label>
+                      <span class="val-bold">{{ currentVendor.services_provided }}</span>
+                    </div>
+                    <div class="data-item">
+                      <label>Intelligence Notes</label>
+                      <p class="val-text">
+                        {{ currentVendor.notes || 'No security notes recorded for this entity.' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tab-col">
+                  <div class="section-title-premium">
+                    <FileText class="icon-primary" /> Contractual Data
+                  </div>
+                  <div class="data-group">
+                    <div class="data-item">
+                      <label>Fiscal Exposure</label>
+                      <span class="val-hero text-red-600"
+                        >${{ formatNumber(currentVendor.contract_value) }}</span
+                      >
+                    </div>
+                    <div class="data-item">
+                      <label>Operational Liaison</label>
+                      <span class="val-bold">{{ currentVendor.contact_name }}</span>
+                    </div>
+                    <div class="data-item">
+                      <label>Service Termination Date</label>
+                      <span class="val-bold">{{
+                        formatDate(currentVendor.contract_end_date)
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tab-full mt-8">
+                  <div class="section-title-premium">
+                    <Shield class="icon-primary" /> Vector Risk Factors
+                  </div>
+                  <div class="risk-factors-grid">
+                    <div v-for="factor in riskFactors" :key="factor.label" class="factor-card-lite">
+                      <div class="f-head">
+                        <span class="f-name">{{ factor.label }}</span>
+                        <span class="f-num">{{ factor.value }}/{{ factor.max }}</span>
+                      </div>
+                      <div class="f-bar-bg">
+                        <div
+                          class="f-bar-fill"
+                          :style="{ width: `${(factor.value / factor.max) * 100}%` }"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Risk History Tab -->
+              <div v-if="activeTab === 'history'" class="tab-pane animate-in-fast">
+                <div class="pane-head-premium">
+                  <History class="icon-primary lg" />
+                  <div>
+                    <h3>Risk Evolution Trace</h3>
+                    <p>Timeline of past security assessments and score variations.</p>
+                  </div>
+                </div>
+                <div v-if="vendorStore.riskHistory?.length === 0" class="empty-state-lite">
+                  No historical traces available in current telemetry.
+                </div>
+                <div v-else class="trace-list">
+                  <div
+                    v-for="(entry, index) in vendorStore.riskHistory"
+                    :key="index"
+                    class="trace-item hover-shift"
+                  >
+                    <div class="trace-main">
+                      <span class="trace-date">{{ formatDateFull(entry.date) }}</span>
+                      <span class="trace-assessor" v-if="entry.assessed_by"
+                        >Audited by {{ entry.assessed_by }}</span
+                      >
+                    </div>
+                    <div class="trace-pill" :class="getRiskClass(entry.overall_score)">
+                      {{ entry.overall_score }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Supply Chain Tab -->
+              <div v-if="activeTab === 'supply-chain'" class="tab-pane animate-in-fast">
+                <div class="supply-grid-premium">
+                  <div class="supply-stack">
+                    <h3 class="stack-title"><GitBranch class="icon-sm" /> Upstream (Depends On)</h3>
+                    <div
+                      v-if="vendorStore.dependencies?.depends_on?.length === 0"
+                      class="empty-mini"
+                    >
+                      No direct dependencies mapped.
+                    </div>
+                    <div v-else class="stack-list">
+                      <router-link
+                        v-for="dep in vendorStore.dependencies?.depends_on"
+                        :key="dep.id"
+                        :to="`/vendors/${dep.id}`"
+                        class="stack-item"
+                      >
+                        <span class="s-name">{{ dep.name }}</span>
+                        <div class="s-risk" :class="getRiskClass(dep.overall_risk_score)">
+                          {{ dep.risk_level }}
+                        </div>
+                      </router-link>
+                    </div>
+                  </div>
+                  <div class="supply-stack border-l border-slate-100 pl-8">
+                    <h3 class="stack-title">
+                      <GitBranch class="icon-sm rotate-180" /> Downstream (Depended By)
+                    </h3>
+                    <div
+                      v-if="vendorStore.dependencies?.depended_by?.length === 0"
+                      class="empty-mini"
+                    >
+                      No dependents detected.
+                    </div>
+                    <div v-else class="stack-list">
+                      <router-link
+                        v-for="dep in vendorStore.dependencies?.depended_by"
+                        :key="dep.id"
+                        :to="`/vendors/${dep.id}`"
+                        class="stack-item"
+                      >
+                        <span class="s-name">{{ dep.name }}</span>
+                        <div class="s-risk" :class="getRiskClass(dep.overall_risk_score)">
+                          {{ dep.risk_level }}
+                        </div>
+                      </router-link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Incidents Tab -->
+              <div v-if="activeTab === 'incidents'" class="tab-pane animate-in-fast">
+                <div class="pane-head-premium">
+                  <AlertTriangle class="icon-primary lg text-red-500" />
+                  <div>
+                    <h3>Security Incidents</h3>
+                    <p>Historical record of detected breaches, outages, and leakage events.</p>
+                  </div>
+                </div>
+                <div v-if="currentVendor.incident_history?.length === 0" class="empty-state-lite">
+                  Clean telemetry. No incidents on record for this entity.
+                </div>
+                <div v-else class="incident-board">
+                  <div
+                    v-for="incident in currentVendor.incident_history"
+                    :key="incident.id"
+                    class="i-card-premium"
+                  >
+                    <div class="i-head">
+                      <span class="i-sev" :class="incident.severity"></span>
+                      <span class="i-title">{{ incident.title }}</span>
+                      <span class="i-date">{{ formatDate(incident.incident_date) }}</span>
+                    </div>
+                    <p class="i-body">{{ incident.description }}</p>
+                    <div class="i-foot">
+                      <span class="impact-txt"
+                        >Exposure: ${{ formatNumber(incident.financial_impact) }}</span
+                      >
+                      <div class="flex gap-2">
+                        <button
+                          @click="editIncident(incident)"
+                          class="icon-btn-lite"
+                          title="Edit Incident Record"
+                        >
+                          <Edit class="icon-xs" />
+                        </button>
+                        <button
+                          @click="deleteIncident(incident.id)"
+                          class="icon-btn-lite danger"
+                          title="Delete record"
+                        >
+                          <Trash2 class="icon-xs" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-8 flex justify-center">
+                  <button @click="showIncidentModal = true" class="btn btn-primary lg shadow-lg">
+                    <Plus class="icon-sm" /> Report New Incident
+                  </button>
+                </div>
+              </div>
+
+              <!-- Compliance Tab -->
+              <div v-if="activeTab === 'compliance'" class="tab-pane animate-in-fast">
+                <div class="pane-head-premium">
+                  <ShieldCheck class="icon-primary lg text-green-500" />
+                  <div>
+                    <h3>Compliance Certificates</h3>
+                    <p>Verification status of ISO, SOC2, and data protection standards.</p>
+                  </div>
+                </div>
+                <div v-if="currentVendor.certifications?.length === 0" class="empty-state-lite">
+                  No valid certifications uploaded.
+                </div>
+                <div v-else class="c-grid-premium">
+                  <div
+                    v-for="cert in currentVendor.certifications"
+                    :key="cert.id"
+                    class="c-card"
+                    :class="{ expired: cert.is_expired }"
+                  >
+                    <div class="c-icon-bg">
+                      <ShieldCheck v-if="!cert.is_expired" class="c-icon" />
+                      <AlertCircle v-else class="c-icon text-red-500" />
+                    </div>
+                    <div class="c-main">
+                      <div class="flex justify-between items-start">
+                        <h4>{{ cert.certification_type_display }}</h4>
+                        <div class="flex gap-1">
+                          <button
+                            @click="editCertification(cert)"
+                            class="icon-btn-lite"
+                            title="Update Certification"
+                          >
+                            <Edit class="icon-xs" />
+                          </button>
+                          <button
+                            @click="deleteCertification(cert.id)"
+                            class="icon-btn-lite danger"
+                            title="Remove Certificate"
+                          >
+                            <Trash2 class="icon-xs" />
+                          </button>
+                        </div>
+                      </div>
+                      <p class="c-body-txt">{{ cert.certification_body }}</p>
+                      <div class="c-exp">
+                        <span class="f-label">EXPIRES</span>
+                        <span class="f-val-c" :class="{ 'text-red-600': cert.is_expired }">{{
+                          formatDate(cert.expiry_date)
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-12 flex justify-center">
+                  <button @click="showCertModal = true" class="btn btn-primary lg shadow-lg">
+                    <Plus class="icon-sm" /> Add Certification
+                  </button>
+                </div>
+              </div>
+
+              <!-- Contacts Tab -->
+              <div v-if="activeTab === 'contacts'" class="tab-pane animate-in-fast">
+                <div class="section-title-premium mb-8">
+                  <User class="icon-primary" /> Incident & Technical Liaisons
+                </div>
+                <div class="contacts-board">
+                  <!-- Primary (From Vendor) -->
+                  <div class="contact-card-premium primary">
+                    <span class="role-tag">Primary Owner</span>
+                    <h4>{{ currentVendor.contact_name }}</h4>
+                    <div class="c-links">
+                      <a :href="`mailto:${currentVendor.contact_email}`"
+                        ><Mail class="icon-xs" /> {{ currentVendor.contact_email }}</a
+                      >
+                      <span v-if="currentVendor.contact_phone"
+                        ><Phone class="icon-xs" /> {{ currentVendor.contact_phone }}</span
+                      >
+                    </div>
+                  </div>
+                  <!-- Additional -->
+                  <div
+                    v-for="contact in vendorStore.vendorContacts"
+                    :key="contact.id"
+                    class="contact-card-premium"
+                  >
+                    <span class="role-tag secondary">{{ contact.contact_type }}</span>
+                    <h4>{{ contact.name }}</h4>
+                    <p class="c-title-txt" v-if="contact.title">{{ contact.title }}</p>
+                    <div class="c-links">
+                      <a :href="`mailto:${contact.email}`"
+                        ><Mail class="icon-xs" /> {{ contact.email }}</a
+                      >
+                      <span v-if="contact.phone"
+                        ><Phone class="icon-xs" /> {{ contact.phone }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Warning Section -->
+          <footer
+            class="detail-footer mt-12 bg-red-50 border border-red-100 rounded-3xl p-8 flex items-center justify-between"
+          >
             <div>
-              <router-link to="/vendors" class="back-link">
-                <ArrowLeft class="icon" />
-                Back to Vendors
-              </router-link>
-              <div class="header-title">
-                <h1>{{ currentVendor.name }}</h1>
-                <span class="status-badge" :class="{ active: currentVendor.is_active }">
-                  {{ currentVendor.is_active ? 'Active' : 'Inactive' }}
-                </span>
-              </div>
-              <p class="text-muted">{{ currentVendor.industry }} • {{ currentVendor.country }}</p>
+              <h3 class="text-red-700 font-black uppercase text-sm mb-1">Danger Zone</h3>
+              <p class="text-red-500 text-sm">
+                Purging this entity is permanent and removes all risk and simulation history.
+              </p>
             </div>
-            <div class="header-actions">
-              <button
-                @click="recalculateRisk"
-                class="btn btn-outline"
-                :disabled="vendorStore.loading"
-              >
-                <RefreshCw class="icon" />
-                Recalculate Risk
-              </button>
-              <button @click="showEditModal = true" class="btn btn-primary">
-                <Edit class="icon" />
-                Edit Vendor
-              </button>
-            </div>
-          </div>
-
-          <!-- Risk Score Overview -->
-          <div class="risk-overview card">
-            <div class="risk-score-display">
-              <div class="risk-circle" :class="getRiskClass(currentVendor.overall_risk_score)">
-                <span class="risk-number">{{ currentVendor.overall_risk_score || 0 }}</span>
-                <span class="risk-label">Risk Score</span>
-              </div>
-              <div class="risk-info">
-                <h2>Overall Risk Assessment</h2>
-                <p class="risk-level" :class="getRiskClass(currentVendor.overall_risk_score)">
-                  {{ getRiskLevelText(currentVendor.overall_risk_score) }}
-                </p>
-                <p class="text-muted">Last updated: {{ formatDate(currentVendor.updated_at) }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Details Grid -->
-          <div class="details-grid">
-            <!-- Basic Information -->
-            <div class="detail-card card">
-              <h3>
-                <Building class="section-icon" />
-                Basic Information
-              </h3>
-              <div class="detail-rows">
-                <div class="detail-row">
-                  <span class="detail-label">Website</span>
-                  <a
-                    v-if="currentVendor.website"
-                    :href="currentVendor.website"
-                    target="_blank"
-                    class="detail-value link"
-                  >
-                    {{ currentVendor.website }}
-                  </a>
-                  <span v-else class="detail-value text-muted">Not provided</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Services Provided</span>
-                  <span class="detail-value">{{ currentVendor.services_provided }}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Notes</span>
-                  <span class="detail-value">{{ currentVendor.notes || 'No notes' }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Contact Information -->
-            <div class="detail-card card">
-              <h3>
-                <User class="section-icon" />
-                Contact Information
-              </h3>
-              <div class="detail-rows">
-                <div class="detail-row">
-                  <span class="detail-label">Contact Name</span>
-                  <span class="detail-value">{{ currentVendor.contact_name }}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Email</span>
-                  <a :href="`mailto:${currentVendor.contact_email}`" class="detail-value link">
-                    {{ currentVendor.contact_email }}
-                  </a>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Phone</span>
-                  <span class="detail-value">{{
-                    currentVendor.contact_phone || 'Not provided'
-                  }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Contract Information -->
-            <div class="detail-card card">
-              <h3>
-                <FileText class="section-icon" />
-                Contract Information
-              </h3>
-              <div class="detail-rows">
-                <div class="detail-row">
-                  <span class="detail-label">Contract Start</span>
-                  <span class="detail-value">{{
-                    formatDate(currentVendor.contract_start_date)
-                  }}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Contract End</span>
-                  <span class="detail-value">{{
-                    formatDate(currentVendor.contract_end_date)
-                  }}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Contract Value</span>
-                  <span class="detail-value"
-                    >${{ formatNumber(currentVendor.contract_value) }}</span
-                  >
-                </div>
-              </div>
-            </div>
-
-            <!-- Risk Factors -->
-            <div class="detail-card card full-width">
-              <h3>
-                <Shield class="section-icon" />
-                Risk Assessment Factors
-              </h3>
-              <div class="risk-factors">
-                <div class="risk-factor">
-                  <div class="factor-header">
-                    <span class="factor-label">Security Posture</span>
-                    <span class="factor-value">{{ currentVendor.security_posture_score }}/100</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      :style="{ width: `${currentVendor.security_posture_score}%` }"
-                    ></div>
-                  </div>
-                </div>
-
-                <div class="risk-factor">
-                  <div class="factor-header">
-                    <span class="factor-label">Data Sensitivity Level</span>
-                    <span class="factor-value">{{ currentVendor.data_sensitivity_level }}/5</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      :style="{ width: `${(currentVendor.data_sensitivity_level / 5) * 100}%` }"
-                    ></div>
-                  </div>
-                </div>
-
-                <div class="risk-factor">
-                  <div class="factor-header">
-                    <span class="factor-label">Service Criticality</span>
-                    <span class="factor-value"
-                      >{{ currentVendor.service_criticality_level }}/5</span
-                    >
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      :style="{ width: `${(currentVendor.service_criticality_level / 5) * 100}%` }"
-                    ></div>
-                  </div>
-                </div>
-
-                <div class="risk-factor">
-                  <div class="factor-header">
-                    <span class="factor-label">Incident History</span>
-                    <span class="factor-value">{{ currentVendor.incident_history_score }}/100</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      :style="{ width: `${currentVendor.incident_history_score}%` }"
-                    ></div>
-                  </div>
-                </div>
-
-                <div class="risk-factor">
-                  <div class="factor-header">
-                    <span class="factor-label">Compliance Score</span>
-                    <span class="factor-value">{{ currentVendor.compliance_score }}/50</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      :style="{ width: `${(currentVendor.compliance_score / 50) * 100}%` }"
-                    ></div>
-                  </div>
-                </div>
-
-                <div class="risk-factor">
-                  <div class="factor-header">
-                    <span class="factor-label">Third-Party Dependencies Risk</span>
-                    <span class="factor-value"
-                      >{{ currentVendor.third_party_dependencies_score }}/50</span
-                    >
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill danger"
-                      :style="{
-                        width: `${(currentVendor.third_party_dependencies_score / 50) * 100}%`,
-                      }"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Danger Zone -->
-          <div class="danger-zone card">
-            <h3>Danger Zone</h3>
-            <p>Once you delete a vendor, there is no going back. Please be certain.</p>
-            <button @click="deleteVendorConfirm" class="btn btn-danger">
-              <Trash2 class="icon" />
-              Delete Vendor
+            <button @click="deleteVendorConfirm" class="btn btn-danger lg shadow-lg">
+              <Trash2 class="icon-sm" /> Archive Resource
             </button>
-          </div>
+          </footer>
         </div>
       </div>
-    </div>
+    </main>
 
-    <!-- Edit Modal -->
+    <!-- Modals -->
     <VendorModal
       v-if="showEditModal"
       :vendor="currentVendor"
@@ -267,18 +444,32 @@
       @save="handleVendorUpdated"
     />
 
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="delete-modal">
-        <h2>Delete Vendor</h2>
-        <p>
-          Are you sure you want to delete <strong>{{ currentVendor?.name }}</strong
-          >?
+    <IncidentModal
+      v-if="showIncidentModal"
+      :vendor-id="route.params.id"
+      :incident="selectedIncident"
+      @close="closeIncidentModal"
+      @save="fetchData"
+    />
+
+    <CertificationModal
+      v-if="showCertModal"
+      :vendor-id="route.params.id"
+      :certification="selectedCert"
+      @close="closeCertModal"
+      @save="fetchData"
+    />
+
+    <div v-if="showDeleteModal" class="modal-overlay glass" @click.self="showDeleteModal = false">
+      <div class="card p-10 max-w-md w-full text-center">
+        <AlertTriangle class="large-icon text-red-500 mb-6 mx-auto" />
+        <h2 class="text-2xl font-black mb-4">Confirm Removal</h2>
+        <p class="text-muted mb-8">
+          Permanently remove <strong>{{ currentVendor?.name }}</strong> from the security dashboard?
         </p>
-        <p class="warning-text">This action cannot be undone.</p>
-        <div class="modal-actions">
-          <button @click="showDeleteModal = false" class="btn btn-secondary">Cancel</button>
-          <button @click="confirmDelete" class="btn btn-danger">Delete</button>
+        <div class="flex gap-4">
+          <button @click="showDeleteModal = false" class="btn btn-secondary flex-1">Abort</button>
+          <button @click="confirmDelete" class="btn btn-danger flex-1">Confirm Archive</button>
         </div>
       </div>
     </div>
@@ -286,12 +477,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useVendorStore } from '../stores/vendor'
 import NavBar from '../components/common/NavBar.vue'
 import LoadingSpinner from '../components/common/LoadingSpinner.vue'
 import VendorModal from '../components/vendors/VendorModal.vue'
+import IncidentModal from '../components/vendors/IncidentModal.vue'
+import CertificationModal from '../components/vendors/CertificationModal.vue'
 import {
   ArrowLeft,
   Edit,
@@ -302,6 +495,14 @@ import {
   Shield,
   Trash2,
   AlertCircle,
+  History,
+  GitBranch,
+  AlertTriangle,
+  ShieldCheck,
+  Mail,
+  Phone,
+  ExternalLink,
+  Plus,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -310,8 +511,27 @@ const vendorStore = useVendorStore()
 
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+const showIncidentModal = ref(false)
+const showCertModal = ref(false)
+const activeTab = ref('overview')
+
+const selectedIncident = ref(null)
+const selectedCert = ref(null)
 
 const currentVendor = computed(() => vendorStore.currentVendor)
+
+const riskFactors = computed(() => [
+  { label: 'Security Posture', value: currentVendor.value?.security_posture_score, max: 100 },
+  { label: 'Data Sensitivity', value: currentVendor.value?.data_sensitivity_level, max: 5 },
+  { label: 'Service Criticality', value: currentVendor.value?.service_criticality_level, max: 5 },
+  { label: 'Incident History', value: currentVendor.value?.incident_history_score, max: 100 },
+  { label: 'Regulatory Compliance', value: currentVendor.value?.compliance_score, max: 100 },
+  {
+    label: 'Third-Party Risk',
+    value: currentVendor.value?.third_party_dependencies_score,
+    max: 100,
+  },
+])
 
 const getRiskClass = (score) => {
   if (score >= 76) return 'critical'
@@ -321,13 +541,22 @@ const getRiskClass = (score) => {
 }
 
 const getRiskLevelText = (score) => {
-  if (score >= 76) return 'Critical Risk'
-  if (score >= 51) return 'High Risk'
-  if (score >= 26) return 'Medium Risk'
-  return 'Low Risk'
+  if (score >= 76) return 'Critical Risk Environment'
+  if (score >= 51) return 'High-Alert Security Level'
+  if (score >= 26) return 'Moderate Security Profile'
+  return 'Optimized Security Profile'
 }
 
 const formatDate = (dateStr) => {
+  if (!dateStr) return 'N/A'
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+const formatDateFull = (dateStr) => {
   if (!dateStr) return 'N/A'
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -351,9 +580,7 @@ const handleVendorUpdated = async () => {
   await vendorStore.fetchVendor(route.params.id)
 }
 
-const deleteVendorConfirm = () => {
-  showDeleteModal.value = true
-}
+const deleteVendorConfirm = () => (showDeleteModal.value = true)
 
 const confirmDelete = async () => {
   await vendorStore.deleteVendor(route.params.id)
@@ -361,364 +588,656 @@ const confirmDelete = async () => {
   router.push('/vendors')
 }
 
-onMounted(() => {
-  vendorStore.fetchVendor(route.params.id)
-})
+const editIncident = (incident) => {
+  selectedIncident.value = incident
+  showIncidentModal.value = true
+}
+
+const deleteIncident = async (id) => {
+  if (confirm('Are you sure you want to remove this incident record?')) {
+    await vendorStore.deleteIncident(id)
+    await vendorStore.fetchVendor(route.params.id)
+  }
+}
+
+const editCertification = (cert) => {
+  selectedCert.value = cert
+  showCertModal.value = true
+}
+
+const deleteCertification = async (id) => {
+  if (confirm('Are you sure you want to remove this certification?')) {
+    await vendorStore.deleteCertification(id)
+    await vendorStore.fetchVendor(route.params.id)
+  }
+}
+
+const closeIncidentModal = () => {
+  showIncidentModal.value = false
+  selectedIncident.value = null
+}
+
+const closeCertModal = () => {
+  showCertModal.value = false
+  selectedCert.value = null
+}
+
+const fetchData = async () => {
+  const id = route.params.id
+  await vendorStore.fetchVendor(id)
+  if (activeTab.value === 'history') await vendorStore.fetchRiskHistory(id)
+  else if (activeTab.value === 'supply-chain') await vendorStore.fetchDependencies(id)
+  else if (activeTab.value === 'contacts') await vendorStore.fetchVendorContacts(id)
+}
+
+watch(activeTab, () => fetchData())
+onMounted(() => fetchData())
 </script>
 
 <style scoped>
-.vendor-detail-page {
-  min-height: calc(100vh - 72px);
-  padding: 40px 0;
-  background: #f5f7fa;
+.page-container {
+  min-height: 100vh;
+  background: var(--bg-main);
+}
+.animate-in {
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.animate-in-fast {
+  animation: fadeIn 0.3s ease;
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.error-state {
-  text-align: center;
-  padding: 60px 40px;
+/* Hero Section */
+.vendor-hero {
+  position: relative;
 }
-
-.error-icon {
-  width: 80px;
-  height: 80px;
-  color: #ef4444;
-  margin: 0 auto 24px;
-}
-
-.error-state h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 12px;
-}
-
-.error-state p {
-  color: #6b7280;
-  margin-bottom: 24px;
-}
-
-.page-header {
+.hero-main {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 32px;
+  align-items: stretch;
+  padding: 40px;
 }
 
-.back-link {
+.back-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #3b82f6;
+  font-size: 13px;
+  font-weight: 800;
+  color: #94a3b8;
   text-decoration: none;
-  font-weight: 600;
-  margin-bottom: 16px;
-  transition: color 0.3s ease;
+  padding: 6px 12px;
+  background: #f8fafc;
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+.back-pill:hover {
+  background: #f1f5f9;
+  color: var(--primary);
+  transform: translateX(-4px);
 }
 
-.back-link:hover {
-  color: #2563eb;
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
-}
-
-.header-title {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 8px;
-}
-
-.page-header h1 {
-  font-size: 36px;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.status-badge {
-  padding: 6px 16px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.status-badge.active {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-/* Risk Overview */
-.risk-overview {
-  margin-bottom: 32px;
-}
-
-.risk-score-display {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-
-.risk-circle {
-  width: 160px;
-  height: 160px;
+.status-indicator {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
+  background: #cbd5e1;
+}
+.status-indicator.active {
+  background: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.hero-tags {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 8px solid;
+  gap: 8px;
 }
-
-.risk-circle.critical {
-  background: #fee2e2;
-  border-color: #dc2626;
+.h-tag {
+  font-size: 12px;
+  font-weight: 800;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 8px;
+  text-transform: uppercase;
 }
-
-.risk-circle.high {
-  background: #fef3c7;
-  border-color: #f59e0b;
-}
-
-.risk-circle.medium {
-  background: #fef9c3;
-  border-color: #eab308;
-}
-
-.risk-circle.low {
-  background: #d1fae5;
-  border-color: #10b981;
-}
-
-.risk-number {
-  font-size: 48px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.risk-label {
-  font-size: 14px;
-  font-weight: 600;
-  margin-top: 8px;
-}
-
-.risk-info h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 8px;
-}
-
-.risk-level {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.risk-level.critical {
-  color: #dc2626;
-}
-
-.risk-level.high {
-  color: #f59e0b;
-}
-
-.risk-level.medium {
-  color: #eab308;
-}
-
-.risk-level.low {
+.h-tag-outline {
+  font-size: 12px;
+  font-weight: 800;
   color: #10b981;
+  border: 1px solid #10b981;
+  padding: 3px 9px;
+  border-radius: 8px;
+  text-transform: uppercase;
 }
 
-/* Details Grid */
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  margin-bottom: 24px;
+/* Big Risk Card */
+.risk-summary-card {
+  width: 240px;
+  padding: 24px;
+  border-radius: 24px;
+  text-align: center;
+  border-bottom: 6px solid transparent;
+}
+.risk-summary-card.critical {
+  background: #fff1f2;
+  border-color: #e11d48;
+  color: #be123c;
+}
+.risk-summary-card.high {
+  background: #fffbeb;
+  border-color: #f59e0b;
+  color: #b45309;
+}
+.risk-summary-card.medium {
+  background: #fefce8;
+  border-color: #eab308;
+  color: #854d0e;
+}
+.risk-summary-card.low {
+  background: #f0fdf4;
+  border-color: #16a34a;
+  color: #15803d;
 }
 
-.detail-card h3 {
+.r-val-big {
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.r-label-big {
+  font-size: 10px;
+  font-weight: 800;
+  opacity: 0.6;
+  letter-spacing: 0.1em;
+}
+.r-status-big {
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 12px;
+}
+
+.hero-actions-floating {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 20px;
+  justify-content: flex-start;
 }
 
-.section-icon {
-  width: 24px;
-  height: 24px;
-  color: #3b82f6;
+/* Tabs system */
+.tabs-island {
+  padding: 4px;
+  border-radius: 40px;
+  display: inline-block;
 }
-
-.detail-rows {
+.tabs-inner {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.detail-row {
-  display: flex;
-  flex-direction: column;
   gap: 4px;
 }
-
-.detail-label {
+.t-btn {
+  padding: 10px 24px;
+  border-radius: 36px;
+  border: none;
+  background: transparent;
+  color: #64748b;
   font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.t-btn:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+.t-btn.active {
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.detail-value {
-  font-size: 16px;
-  color: #1f2937;
+/* Tab Content */
+.tab-content {
+  padding: 40px;
+  min-height: 500px;
 }
-
-.full-width {
-  grid-column: 1 / -1;
-}
-
-/* Risk Factors */
-.risk-factors {
+.tab-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+}
+
+.section-title-premium {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #1e293b;
+  margin-bottom: 32px;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+.icon-primary {
+  width: 20px;
+  height: 20px;
+  color: var(--primary);
+}
+.icon-primary.lg {
+  width: 40px;
+  height: 40px;
+}
+
+.data-group {
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 }
+.data-item label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.val-bold {
+  font-size: 16px;
+  font-weight: 700;
+  color: #334155;
+}
+.val-hero {
+  font-size: 24px;
+  font-weight: 900;
+}
+.val-text {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+}
+.link-premium {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
-.risk-factor {
+/* Risk Factors Grid */
+.risk-factors-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.factor-card-lite {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+.f-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.f-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+.f-num {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--primary);
+}
+.f-bar-bg {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.f-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+/* Pane head */
+.pane-head-premium {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+.pane-head-premium h3 {
+  font-size: 20px;
+  font-weight: 900;
+  color: #1e293b;
+}
+.pane-head-premium p {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Trace list */
+.trace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.trace-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: #fcfdfe;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+}
+.trace-date {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e293b;
+}
+.trace-assessor {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+.trace-pill {
+  padding: 6px 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 900;
+}
+.trace-pill.critical {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.trace-pill.high {
+  background: #fef3c7;
+  color: #92400e;
+}
+.trace-pill.medium {
+  background: #fef9c3;
+  color: #854d0e;
+}
+.trace-pill.low {
+  background: #d1fae5;
+  color: #065e46;
+}
+
+/* Supply Chain */
+.supply-grid-premium {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.stack-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stack-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.stack-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+.stack-item:hover {
+  border-color: var(--primary);
+  transform: translateX(4px);
+}
+.s-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.s-risk {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Incident Board */
+.incident-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+.i-card-premium {
+  padding: 24px;
+  background: #fffcfc;
+  border: 1px solid #fee2e2;
+  border-radius: 20px;
+}
+.i-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.i-sev {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.i-sev.critical {
+  background: #dc2626;
+  box-shadow: 0 0 8px #dc2626;
+}
+.i-title {
+  font-weight: 800;
+  color: #1e293b;
+  flex: 1;
+}
+.i-date {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 700;
+}
+.i-body {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.i-foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 800;
+  border-top: 1px solid #fee2e2;
+  padding-top: 16px;
+}
+.impact-txt {
+  color: #dc2626;
+}
+.i-cat {
+  opacity: 0.5;
+}
+
+/* Compliance */
+.c-grid-premium {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+.c-card {
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+}
+.c-card.expired {
+  background: #fffafb;
+  border-color: #fee2e2;
+}
+.c-icon-bg {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.c-main h4 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+.c-body-txt {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+.c-exp .f-label {
+  font-size: 9px;
+  font-weight: 800;
+  opacity: 0.4;
+}
+.c-exp .f-val-c {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* Contacts Board */
+.contacts-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+.contact-card-premium {
+  padding: 24px;
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+  position: relative;
+}
+.role-tag {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--primary-soft);
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+.role-tag.secondary {
+  color: #64748b;
+  background: #f1f5f9;
+}
+.contact-card-premium h4 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+.c-title-txt {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+.c-links {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-
-.factor-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.factor-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #4b5563;
-}
-
-.factor-value {
-  font-size: 14px;
+.c-links a {
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: none;
   font-weight: 700;
-  color: #3b82f6;
-}
-
-.progress-bar {
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #3b82f6;
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.progress-fill.danger {
-  background: #ef4444;
-}
-
-/* Danger Zone */
-.danger-zone {
-  border: 2px solid #fee2e2;
-  background: #fef2f2;
-}
-
-.danger-zone h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #dc2626;
-  margin-bottom: 8px;
-}
-
-.danger-zone p {
-  color: #6b7280;
-  margin-bottom: 16px;
-}
-
-/* Delete Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  gap: 8px;
 }
-
-.delete-modal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  max-width: 400px;
-  width: 100%;
-}
-
-.delete-modal h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 16px;
-}
-
-.delete-modal p {
-  color: #4b5563;
-  margin-bottom: 12px;
-}
-
-.warning-text {
-  color: #ef4444;
+.c-links span {
+  font-size: 13px;
+  color: #64748b;
   font-weight: 600;
-  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
+.icon-xs {
+  width: 14px;
+  height: 14px;
+}
+.icon-sm {
+  width: 18px;
+  height: 18px;
+}
+.large-icon {
+  width: 64px;
+  height: 64px;
 }
 
 @media (max-width: 1024px) {
-  .details-grid,
-  .risk-factors {
+  .hero-main {
+    flex-direction: column;
+    gap: 32px;
+    text-align: center;
+  }
+  .risk-summary-card {
+    width: 100%;
+  }
+  .tab-grid,
+  .supply-grid-premium {
     grid-template-columns: 1fr;
   }
-
-  .risk-score-display {
-    flex-direction: column;
-    text-align: center;
+  .supply-stack.border-l {
+    border: none;
+    padding: 0;
+    margin-top: 32px;
+  }
+  .risk-factors-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 </style>

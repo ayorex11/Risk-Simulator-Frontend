@@ -1,50 +1,55 @@
 <template>
-  <nav class="navbar">
-    <div class="container navbar-content">
-      <div class="navbar-brand">
-        <router-link to="/dashboard" class="brand-link">
-          <Shield class="brand-icon" />
-          <h2>Scenario Forge</h2>
-        </router-link>
-      </div>
-
-      <div class="navbar-menu" v-if="authStore.isLoggedIn">
-        <router-link to="/dashboard" class="nav-link">
-          <LayoutDashboard class="nav-icon" />
-          Dashboard
-        </router-link>
-        <router-link to="/vendors" class="nav-link">
-          <Building class="nav-icon" />
-          Vendors
-        </router-link>
-        <router-link to="/simulations" class="nav-link">
-          <Zap class="nav-icon" />
-          Simulations
-        </router-link>
-        <router-link to="/assessments" class="nav-link">
-          <ClipboardList class="nav-icon" />
-          Assessments
-        </router-link>
-        <router-link v-if="isAdmin" to="/organization/settings" class="nav-link">
-          <Building class="nav-icon" />
-          Organization
-        </router-link>
-
-        <div class="navbar-user">
-          <router-link to="/profile" class="user-info">
-            <span class="user-name">{{
-              coreStore.currentUser?.first_name || coreStore.currentUser?.email
-            }}</span>
-            <span class="user-role">{{ userRole }}</span>
+  <div class="nav-wrapper">
+    <nav class="navbar glass">
+      <div class="navbar-content">
+        <div class="navbar-brand">
+          <router-link to="/dashboard" class="brand-link">
+            <Shield class="brand-icon" />
+            <span class="brand-text">Scenario Forge</span>
           </router-link>
-          <button @click="handleLogout" class="btn btn-secondary btn-sm">
-            <LogOut class="icon" />
-            Logout
+        </div>
+
+        <div class="navbar-center" v-if="authStore.isLoggedIn">
+          <router-link to="/dashboard" class="nav-link" title="Dashboard">
+            <LayoutDashboard class="nav-icon" />
+            <span>Dashboard</span>
+          </router-link>
+          <router-link to="/vendors" class="nav-link" title="Vendors">
+            <Building class="nav-icon" />
+            <span>Vendors</span>
+          </router-link>
+          <router-link to="/vendors/compare" class="nav-link" title="Comparison">
+            <Scale class="nav-icon" />
+            <span>Comparison</span>
+          </router-link>
+          <router-link to="/incidents/trends" class="nav-link" title="Incidents">
+            <Activity class="nav-icon" />
+            <span>Incidents</span>
+          </router-link>
+          <router-link to="/simulations" class="nav-link" title="Simulations">
+            <Zap class="nav-icon" />
+            <span>Sims</span>
+          </router-link>
+          <router-link to="/assessments" class="nav-link" title="Assessments">
+            <ClipboardList class="nav-icon" />
+            <span>Audits</span>
+          </router-link>
+        </div>
+
+        <div class="navbar-user" v-if="authStore.isLoggedIn">
+          <router-link to="/profile" class="user-pill">
+            <div class="avatar-mini">
+              {{ (coreStore.currentUser?.first_name || 'U').charAt(0) }}
+            </div>
+            <span class="user-name-hide">{{ coreStore.currentUser?.first_name || 'Account' }}</span>
+          </router-link>
+          <button @click="handleLogout" class="logout-btn" title="Logout">
+            <LogOut class="icon-sm" />
           </button>
         </div>
       </div>
-    </div>
-  </nav>
+    </nav>
+  </div>
 </template>
 
 <script setup>
@@ -52,19 +57,22 @@ import { computed } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { useCoreStore } from '../../stores/core'
 import { useRouter } from 'vue-router'
-import { Shield, LayoutDashboard, Building, Zap, ClipboardList, LogOut } from 'lucide-vue-next'
+import {
+  Shield,
+  LayoutDashboard,
+  Building,
+  Zap,
+  ClipboardList,
+  LogOut,
+  Scale,
+  Activity,
+} from 'lucide-vue-next'
 
 const authStore = useAuthStore()
 const coreStore = useCoreStore()
 const router = useRouter()
 
 const isAdmin = computed(() => ['admin', 'manager'].includes(coreStore.permissions?.role))
-
-const userRole = computed(() => {
-  const role = coreStore.permissions?.role
-  if (!role) return ''
-  return role.charAt(0).toUpperCase() + role.slice(1)
-})
 
 const handleLogout = async () => {
   await authStore.logout()
@@ -73,60 +81,70 @@ const handleLogout = async () => {
 </script>
 
 <style scoped>
-.navbar {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 0;
+.nav-wrapper {
   position: sticky;
-  top: 0;
-  z-index: 100;
+  top: 16px;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  pointer-events: none; /* Allow clicking through wrapper */
+}
+
+.navbar {
+  pointer-events: auto; /* Re-enable clicks for navbar itself */
+  width: 95%;
+  max-width: 1200px;
+  height: 64px;
+  border-radius: 32px;
+  padding: 0 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .navbar-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0;
-  height: 72px;
+  height: 100%;
 }
 
+/* Brand Section */
 .navbar-brand {
-  display: flex;
-  align-items: center;
+  flex: 0 0 200px;
 }
 
 .brand-link {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-decoration: none;
-  color: #1f2937;
-  transition: opacity 0.3s;
-}
-
-.brand-link:hover {
-  opacity: 0.8;
+  padding: 8px 12px;
+  border-radius: 20px;
 }
 
 .brand-icon {
-  width: 32px;
-  height: 32px;
-  color: #3b82f6;
+  width: 28px;
+  height: 28px;
+  color: var(--primary);
 }
 
-.brand-link h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #3b82f6;
-  margin: 0;
+.brand-text {
+  font-weight: 800;
+  font-size: 18px;
+  color: #1e293b;
+  letter-spacing: -0.02em;
 }
 
-.navbar-menu {
+/* Center Menu */
+.navbar-center {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex: 1;
-  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 4px;
+  border-radius: 28px;
+  gap: 2px;
 }
 
 .nav-link {
@@ -134,22 +152,23 @@ const handleLogout = async () => {
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: #4b5563;
+  color: #64748b;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 14px;
   font-weight: 600;
-  padding: 12px 16px;
-  border-radius: 8px;
-  transition: all 0.3s;
-  font-size: 15px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-link:hover {
-  color: #3b82f6;
-  background: #eff6ff;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--primary);
 }
 
 .nav-link.router-link-active {
-  color: #3b82f6;
-  background: #eff6ff;
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .nav-icon {
@@ -157,54 +176,80 @@ const handleLogout = async () => {
   height: 18px;
 }
 
+/* User Section */
 .navbar-user {
+  flex: 0 0 200px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-pill {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding-left: 24px;
-  margin-left: 24px;
-  border-left: 2px solid #e5e7eb;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  background: white;
+  border-radius: 20px;
   text-decoration: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  transition: all 0.3s;
-  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  border: 1px solid var(--border-light);
+  transition: transform 0.2s;
 }
 
-.user-info:hover {
-  background: #f3f4f6;
+.user-pill:hover {
+  transform: scale(1.02);
 }
 
-.user-name {
-  color: #1f2937;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.user-role {
-  color: #6b7280;
+.avatar-mini {
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
+  font-weight: 900;
 }
 
-.btn-sm {
-  padding: 8px 16px;
-  font-size: 14px;
+.logout-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #fee2e2;
+  color: #dc2626;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.icon {
+.logout-btn:hover {
+  background: #fecaca;
+  transform: rotate(5deg);
+}
+
+.icon-sm {
   width: 16px;
   height: 16px;
 }
 
-@media (max-width: 1024px) {
-  .navbar-menu {
+@media (max-width: 1100px) {
+  .nav-link span,
+  .brand-text,
+  .user-name-hide {
     display: none;
+  }
+  .navbar-brand,
+  .navbar-user {
+    flex: 0 0 auto;
   }
 }
 </style>

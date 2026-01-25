@@ -1,210 +1,181 @@
 <template>
-  <div>
+  <div class="page-container">
     <NavBar />
-    <div class="dashboard-page">
-      <div class="container">
-        <div class="dashboard-header">
+    <main class="dashboard-page py-8">
+      <div class="container overflow-visible">
+        <!-- Header -->
+        <header class="dashboard-header mb-8">
           <div>
-            <h1>Dashboard</h1>
-            <p class="text-muted">
-              Welcome back, {{ currentUser?.first_name || currentUser?.email }}!
+            <h1 class="text-3xl font-black tracking-tight">Executive Dashboard</h1>
+            <p class="text-muted font-medium">
+              Welcome back, {{ currentUser?.first_name || currentUser?.email }}. Here's your risk
+              overview.
             </p>
           </div>
           <div class="header-actions">
             <button v-if="!hasOrganization" @click="showOrgModal = true" class="btn btn-primary">
               <Building class="icon" />
-              Create Organization
+              Initialize Organization
             </button>
+            <div v-else class="flex gap-4">
+              <router-link to="/vendors/new" class="btn btn-primary">
+                <Plus class="icon" /> Add Vendor
+              </router-link>
+            </div>
           </div>
-        </div>
+        </header>
 
         <!-- No Organization State -->
-        <div v-if="!hasOrganization" class="no-org-state card">
-          <Building class="no-org-icon" />
-          <h2>No Organization Found</h2>
-          <p>You need to create or join an organization to access the risk simulator features.</p>
-          <div class="no-org-actions">
-            <button @click="showOrgModal = true" class="btn btn-primary">
-              Create Organization
+        <div v-if="!hasOrganization" class="no-org-section card glass py-20 text-center">
+          <div class="illustration-placeholder mb-8">
+            <Building class="large-icon text-primary opacity-20" />
+          </div>
+          <h2 class="text-2xl font-bold mb-4">Organization Setup Required</h2>
+          <p class="text-muted max-w-md mx-auto mb-8">
+            Connect your simulation environment to an organization to begin risk analysis and supply
+            chain mapping.
+          </p>
+          <div class="flex justify-center gap-4">
+            <button @click="showOrgModal = true" class="btn btn-primary lg">
+              Create New Organization
             </button>
-            <button @click="showJoinModal = true" class="btn btn-secondary">
-              Join Existing Organization
+            <button @click="showJoinModal = true" class="btn btn-secondary lg">
+              Join Existing
             </button>
           </div>
         </div>
 
         <!-- Dashboard Content -->
-        <div v-else>
+        <div v-else class="dashboard-content animate-in">
           <!-- Summary Stats -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon" style="background: #dbeafe; color: #2563eb">
-                <Building />
-              </div>
-              <div>
-                <p class="stat-label">Total Vendors</p>
-                <p class="stat-value">{{ dashboardData?.summary?.total_vendors || 0 }}</p>
-                <p class="stat-subtext">{{ dashboardData?.summary?.active_vendors || 0 }} active</p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon" style="background: #fee2e2; color: #dc2626">
-                <AlertTriangle />
-              </div>
-              <div>
-                <p class="stat-label">High Risk Vendors</p>
-                <p class="stat-value">{{ dashboardData?.summary?.high_risk_vendors_count || 0 }}</p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon" style="background: #fef3c7; color: #d97706">
-                <Zap />
-              </div>
-              <div>
-                <p class="stat-label">Simulations Run</p>
-                <p class="stat-value">{{ dashboardData?.summary?.total_simulations || 0 }}</p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon" style="background: #d1fae5; color: #059669">
-                <TrendingUp />
-              </div>
-              <div>
-                <p class="stat-label">Avg Risk Score</p>
-                <p class="stat-value">
-                  {{ Math.round(dashboardData?.summary?.average_risk_score || 0) }}
-                </p>
-              </div>
-            </div>
-
-            <!-- New Stats -->
-            <div class="stat-card">
-              <div class="stat-icon" style="background: #e0e7ff; color: #4338ca">
-                <DollarSign />
-              </div>
-              <div>
-                <p class="stat-label">Estimated Impact</p>
-                <p class="stat-value">
-                  ${{ formatNumber(dashboardData?.summary?.total_estimated_impact) }}
-                </p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon" style="background: #ffedd5; color: #9a3412">
-                <Activity />
-              </div>
-              <div>
-                <p class="stat-label">Recent Incidents</p>
-                <p class="stat-value">{{ dashboardData?.summary?.recent_incidents || 0 }}</p>
-                <p class="stat-subtext">Last 6 months</p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon" style="background: #f3e8ff; color: #7e22ce">
-                <ClipboardCheck />
-              </div>
-              <div>
-                <p class="stat-label">Pending Assessments</p>
-                <p class="stat-value">{{ dashboardData?.summary?.pending_assessments || 0 }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- High Risk Vendors -->
-          <div class="dashboard-section">
-            <div class="card">
-              <div class="card-header">
-                <h2>High Risk Vendors</h2>
-                <router-link to="/vendors" class="link">View All →</router-link>
-              </div>
-              <div v-if="dashboardData?.high_risk_vendors?.length === 0" class="empty-state-small">
-                <p>No high-risk vendors identified</p>
-              </div>
-              <div v-else class="vendor-list">
-                <div
-                  v-for="vendor in dashboardData?.high_risk_vendors"
-                  :key="vendor.id"
-                  class="vendor-item"
-                >
-                  <div class="vendor-info">
-                    <h3>{{ vendor.name }}</h3>
-                    <p>{{ vendor.industry }}</p>
-                  </div>
-                  <div class="risk-badge" :class="getRiskClass(vendor.overall_risk_score)">
-                    {{ vendor.overall_risk_score }}
-                  </div>
+          <div class="stats-grid mb-8">
+            <div v-for="stat in stats" :key="stat.label" class="stat-card-premium card">
+              <div class="stat-inner">
+                <div class="stat-info">
+                  <span class="stat-label-modern">{{ stat.label }}</span>
+                  <div class="stat-value-modern" :class="stat.class">{{ stat.value }}</div>
+                  <span class="stat-trend" v-if="stat.sub">
+                    <span class="text-primary font-bold">{{ stat.sub }}</span> active
+                  </span>
+                </div>
+                <div class="stat-visual" :style="{ background: stat.bg, color: stat.color }">
+                  <component :is="stat.icon" class="icon-stat" />
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Recent Simulations -->
-          <div class="dashboard-section">
-            <div class="card">
-              <div class="card-header">
-                <h2>Recent Simulations</h2>
-                <router-link to="/simulations" class="link">View All →</router-link>
-              </div>
-              <div v-if="dashboardData?.recent_simulations?.length === 0" class="empty-state-small">
-                <p>No simulations run yet</p>
-              </div>
-              <div v-else class="simulation-list">
-                <div
-                  v-for="sim in dashboardData?.recent_simulations"
-                  :key="sim.id"
-                  class="simulation-item"
-                >
-                  <div class="simulation-info">
-                    <h3>{{ sim.scenario_type }}</h3>
-                    <p>{{ formatDate(sim.completed_at) }}</p>
+          <div class="main-grid">
+            <!-- Left Column: Critical Info -->
+            <div class="info-column space-y-8">
+              <section class="card overflow-hidden h-full">
+                <div class="section-header-modern">
+                  <h2 class="flex items-center gap-2">
+                    <AlertTriangle class="text-orange-500" /> High Risk Vendors
+                  </h2>
+                  <router-link
+                    to="/vendors"
+                    class="text-xs font-black text-primary uppercase tracking-widest hover:underline"
+                    >Full View</router-link
+                  >
+                </div>
+                <div class="card-body p-0">
+                  <div v-if="dashboardData?.high_risk_vendors?.length === 0" class="empty-mini">
+                    <p>Portfolio is currently optimized.</p>
                   </div>
-                  <div class="simulation-impact">
-                    ${{ formatNumber(sim.total_financial_impact) }}
+                  <div v-else class="premium-list">
+                    <router-link
+                      v-for="vendor in dashboardData?.high_risk_vendors"
+                      :key="vendor.id"
+                      :to="`/vendors/${vendor.id}`"
+                      class="premium-item hover-shift"
+                    >
+                      <div class="item-main">
+                        <span class="item-title">{{ vendor.name }}</span>
+                        <span class="item-sub">{{ vendor.industry }}</span>
+                      </div>
+                      <div class="item-meta">
+                        <div class="risk-pill" :class="getRiskClass(vendor.overall_risk_score)">
+                          {{ (vendor.overall_risk_score || 0).toFixed(2) }}
+                        </div>
+                      </div>
+                    </router-link>
                   </div>
                 </div>
-              </div>
+              </section>
+            </div>
+
+            <!-- Right Column: Activity -->
+            <div class="activity-column space-y-8">
+              <section class="card h-full">
+                <div class="section-header-modern">
+                  <h2 class="flex items-center gap-2">
+                    <Zap class="text-blue-500" /> Recent Simulations
+                  </h2>
+                  <router-link
+                    to="/simulations"
+                    class="text-xs font-black text-primary uppercase tracking-widest hover:underline"
+                    >History</router-link
+                  >
+                </div>
+                <div class="card-body p-0">
+                  <div v-if="dashboardData?.recent_simulations?.length === 0" class="empty-mini">
+                    <p>Ready to launch your first simulation.</p>
+                  </div>
+                  <div v-else class="premium-list">
+                    <div
+                      v-for="sim in dashboardData?.recent_simulations"
+                      :key="sim.id"
+                      class="premium-item"
+                    >
+                      <div class="item-main">
+                        <span class="item-title capitalize">{{
+                          sim.scenario_type.replace('_', ' ')
+                        }}</span>
+                        <span class="item-sub">{{ formatDate(sim.completed_at) }}</span>
+                      </div>
+                      <div class="item-meta">
+                        <span class="font-mono font-black text-red-600">
+                          ${{ formatNumber(sim.total_financial_impact) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
 
-          <!-- Quick Actions -->
-          <div class="quick-actions">
-            <h3>Quick Actions</h3>
-            <div class="actions-grid">
-              <router-link to="/vendors/new" class="action-card">
-                <span class="action-icon">🏢</span>
-                <span>Add Vendor</span>
+          <!-- Bottom: Quick Actions Floating -->
+          <div
+            class="quick-access-bar mt-12 bg-white p-6 rounded-3xl border border-slate-100 shadow-xl flex items-center justify-between"
+          >
+            <h3 class="text-lg font-black uppercase tracking-tighter">Command Center</h3>
+            <div class="flex gap-4">
+              <router-link to="/vendors/new" class="action-pill">
+                <span class="action-icon-bg">🏢</span> Add Vendor
               </router-link>
-              <router-link to="/simulations/new" class="action-card">
-                <span class="action-icon">⚡</span>
-                <span>Run Simulation</span>
+              <router-link to="/simulations/new" class="action-pill">
+                <span class="action-icon-bg">⚡</span> Kill Switch Sim
               </router-link>
-              <router-link to="/assessments" class="action-card">
-                <span class="action-icon">📊</span>
-                <span>New Assessment</span>
+              <router-link to="/assessments" class="action-pill">
+                <span class="action-icon-bg">📊</span> Audit Portal
               </router-link>
-              <router-link to="/reports" class="action-card">
-                <span class="action-icon">📈</span>
-                <span>View Reports</span>
+              <router-link to="/incidents/trends" class="action-pill">
+                <span class="action-icon-bg">📈</span> Risk Trends
               </router-link>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
-    <!-- Create Organization Modal -->
+    <!-- Modals -->
     <CreateOrganizationModal
       v-if="showOrgModal"
       @close="showOrgModal = false"
       @created="handleOrgCreated"
     />
-
-    <!-- Join Organization Modal -->
     <JoinOrganizationModal
       v-if="showJoinModal"
       @close="showJoinModal = false"
@@ -227,6 +198,8 @@ import {
   DollarSign,
   Activity,
   ClipboardCheck,
+  Plus,
+  ArrowRight,
 } from 'lucide-vue-next'
 
 const coreStore = useCoreStore()
@@ -237,6 +210,40 @@ const showJoinModal = ref(false)
 const currentUser = computed(() => coreStore.currentUser)
 const dashboardData = computed(() => coreStore.dashboardData)
 const hasOrganization = computed(() => coreStore.hasOrganization)
+
+const stats = computed(() => [
+  {
+    label: 'Managed Vendors',
+    value: dashboardData.value?.summary?.total_vendors || 0,
+    sub: dashboardData.value?.summary?.active_vendors || 0,
+    icon: Building,
+    bg: '#eff6ff',
+    color: '#3b82f6',
+  },
+  {
+    label: 'Risk Exposure',
+    value: `${(dashboardData.value?.summary?.average_risk_score || 0).toFixed(2)}`,
+    class: getRiskClass(dashboardData.value?.summary?.average_risk_score),
+    icon: TrendingUp,
+    bg: '#f8fafc',
+    color: '#64748b',
+  },
+  {
+    label: 'High-Alert',
+    value: dashboardData.value?.summary?.high_risk_vendors_count || 0,
+    class: 'text-red-500',
+    icon: AlertTriangle,
+    bg: '#fff1f2',
+    color: '#e11d48',
+  },
+  {
+    label: 'Projected Impact',
+    value: `$${formatNumber(dashboardData.value?.summary?.total_estimated_impact)}`,
+    icon: DollarSign,
+    bg: '#f0fdf4',
+    color: '#16a34a',
+  },
+])
 
 const getRiskClass = (score) => {
   if (score >= 76) return 'critical'
@@ -256,6 +263,8 @@ const formatDate = (dateStr) => {
 
 const formatNumber = (num) => {
   if (!num) return '0'
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
   return new Intl.NumberFormat('en-US').format(num)
 }
 
@@ -267,295 +276,266 @@ const handleOrgCreated = async () => {
 
 const handleJoinRequested = async () => {
   showJoinModal.value = false
-  // Refresh user data to show pending status if applicable
   await coreStore.fetchCurrentUser()
 }
 
 onMounted(async () => {
   await coreStore.fetchCurrentUser()
   await coreStore.fetchPermissions()
-
   try {
     await coreStore.fetchOrganization()
     await coreStore.fetchDashboard()
   } catch {
-    // User might not have an organization yet
     console.log('No organization found')
   }
 })
 </script>
 
 <style scoped>
+.page-container {
+  min-height: 100vh;
+  background: var(--bg-main);
+}
+
 .dashboard-page {
-  min-height: calc(100vh - 72px);
-  padding: 40px 0;
-  background: #f5f7fa;
+  padding-top: 40px;
 }
 
 .dashboard-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
+  align-items: flex-end;
 }
 
-.dashboard-header h1 {
-  font-size: 36px;
-  font-weight: 700;
-  color: #1f2937;
+/* Stats Premium */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.stat-card-premium {
+  padding: 0;
+  overflow: hidden;
+  border: none;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.stat-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+}
+
+.stat-label-modern {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
 
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* No Organization State */
-.no-org-state {
-  text-align: center;
-  padding: 60px 40px;
-}
-
-.no-org-icon {
-  width: 80px;
-  height: 80px;
-  color: #d1d5db;
-  margin: 0 auto 24px;
-}
-
-.no-org-state h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 12px;
-}
-
-.no-org-state p {
-  color: #6b7280;
-  margin-bottom: 24px;
-}
-
-.no-org-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-.stat-card {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #6b7280;
+.stat-value-modern {
+  font-size: 32px;
+  font-weight: 900;
+  color: #1e293b;
+  line-height: 1;
   margin-bottom: 4px;
 }
 
-.stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1f2937;
+.stat-value-modern.critical {
+  color: #dc2626;
+}
+.stat-value-modern.high {
+  color: #f59e0b;
+}
+.stat-value-modern.medium {
+  color: #eab308;
+}
+.stat-value-modern.low {
+  color: #10b981;
 }
 
-/* Dashboard Sections */
-.dashboard-section {
-  margin-bottom: 24px;
+.stat-trend {
+  font-size: 12px;
+  color: #64748b;
 }
 
-.card-header {
+.stat-visual {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-stat {
+  width: 28px;
+  height: 28px;
+}
+
+/* Layout Grid */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.section-header-modern {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.card-header h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2937;
+.section-header-modern h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
 }
 
-/* Vendor List */
-.vendor-list {
-  padding: 24px;
+/* Premium List */
+.premium-list {
+  display: flex;
+  flex-direction: column;
 }
 
-.vendor-item {
+.premium-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  text-decoration: none;
+  transition: all 0.2s;
 }
 
-.vendor-item:last-child {
+.premium-item:last-child {
   border-bottom: none;
 }
 
-.vendor-info h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 4px;
+.premium-item.hover-shift:hover {
+  background: #f8fafc;
+  padding-left: 30px;
 }
 
-.vendor-info p {
-  font-size: 14px;
-  color: #6b7280;
+.item-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 2px;
 }
 
-.risk-badge {
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 14px;
+.item-sub {
+  font-size: 12px;
+  color: #64748b;
 }
 
-.risk-badge.critical {
+.risk-pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.risk-pill.critical {
   background: #fee2e2;
-  color: #991b1b;
+  color: #b91c1c;
 }
-
-.risk-badge.high {
+.risk-pill.high {
   background: #fef3c7;
-  color: #92400e;
+  color: #b45309;
 }
-
-.risk-badge.medium {
+.risk-pill.medium {
   background: #fef9c3;
   color: #854d0e;
 }
-
-.risk-badge.low {
+.risk-pill.low {
   background: #d1fae5;
-  color: #065f46;
+  color: #065e46;
 }
 
-/* Simulation List */
-.simulation-list {
-  padding: 24px;
-}
-
-.simulation-item {
+/* Quick Access */
+.action-pill {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.simulation-item:last-child {
-  border-bottom: none;
-}
-
-.simulation-info h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 4px;
-  text-transform: capitalize;
-}
-
-.simulation-info p {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.simulation-impact {
-  font-size: 18px;
-  font-weight: 700;
-  color: #dc2626;
-}
-
-/* Quick Actions */
-.quick-actions {
-  margin-top: 32px;
-}
-
-.quick-actions h3 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 16px;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.action-card {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  border: 2px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  gap: 10px;
+  padding: 10px 18px;
+  background: #f8fafc;
+  border-radius: 30px;
   text-decoration: none;
-  color: #4b5563;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 800;
+  color: #1e293b;
+  transition: all 0.2s;
+  border: 1px solid #e2e8f0;
 }
 
-.action-card:hover {
-  border-color: #3b82f6;
-  background: #eff6ff;
+.action-pill:hover {
+  background: white;
+  border-color: var(--primary);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.action-icon {
-  font-size: 32px;
+.action-icon-bg {
+  width: 28px;
+  height: 28px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
 }
 
-.empty-state-small {
-  padding: 40px;
+.empty-mini {
+  padding: 60px 40px;
   text-align: center;
-  color: #6b7280;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.animate-in {
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 1024px) {
-  .stats-grid,
-  .actions-grid {
+  .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+  .quick-access-bar {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+    border-radius: 20px;
+  }
+  .quick-access-bar div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
   }
 }
 </style>

@@ -10,26 +10,32 @@ export const useVendorStore = defineStore('vendor', {
     currentVendor: null,
     vendorSummary: null,
     incidents: [],
+    incidentTrends: null,
     certifications: [],
+    expiringCertifications: [],
+    riskHistory: [],
+    dependencies: null,
+    vendorContacts: [],
+    comparisonResults: null,
     loading: false,
-    error: null
+    error: null,
   }),
 
   getters: {
     getVendorById: (state) => (id) => {
-      return state.vendors.find(vendor => vendor.id === id)
+      return state.vendors.find((vendor) => vendor.id === id)
     },
 
     vendorsByRiskLevel: (state) => {
       return {
-        critical: state.vendors.filter(v => v.risk_level === 'critical'),
-        high: state.vendors.filter(v => v.risk_level === 'high'),
-        medium: state.vendors.filter(v => v.risk_level === 'medium'),
-        low: state.vendors.filter(v => v.risk_level === 'low')
+        critical: state.vendors.filter((v) => v.risk_level === 'critical'),
+        high: state.vendors.filter((v) => v.risk_level === 'high'),
+        medium: state.vendors.filter((v) => v.risk_level === 'medium'),
+        low: state.vendors.filter((v) => v.risk_level === 'low'),
       }
     },
 
-    activeVendors: (state) => state.vendors.filter(v => v.is_active),
+    activeVendors: (state) => state.vendors.filter((v) => v.is_active),
 
     totalVendors: (state) => state.vendors.length,
 
@@ -37,7 +43,7 @@ export const useVendorStore = defineStore('vendor', {
       if (state.vendors.length === 0) return 0
       const total = state.vendors.reduce((sum, v) => sum + (v.overall_risk_score || 0), 0)
       return total / state.vendors.length
-    }
+    },
   },
 
   actions: {
@@ -98,7 +104,7 @@ export const useVendorStore = defineStore('vendor', {
       this.error = null
       try {
         const response = await vendorService.updateVendor(id, vendorData)
-        const index = this.vendors.findIndex(v => v.id === id)
+        const index = this.vendors.findIndex((v) => v.id === id)
         if (index !== -1) {
           this.vendors[index] = response
         }
@@ -122,7 +128,7 @@ export const useVendorStore = defineStore('vendor', {
       this.error = null
       try {
         await vendorService.deleteVendor(id)
-        this.vendors = this.vendors.filter(v => v.id !== id)
+        this.vendors = this.vendors.filter((v) => v.id !== id)
         toast.success('Vendor deleted successfully!')
       } catch (error) {
         const errorMsg = error.response?.data?.error || 'Failed to delete vendor'
@@ -140,7 +146,7 @@ export const useVendorStore = defineStore('vendor', {
       try {
         const response = await vendorService.recalculateRisk(vendorId)
         // Update the vendor in the list
-        const index = this.vendors.findIndex(v => v.id === vendorId)
+        const index = this.vendors.findIndex((v) => v.id === vendorId)
         if (index !== -1) {
           this.vendors[index].overall_risk_score = response.overall_risk_score
           this.vendors[index].risk_level = response.risk_level
@@ -208,6 +214,36 @@ export const useVendorStore = defineStore('vendor', {
       }
     },
 
+    async updateIncident(id, incidentData) {
+      this.loading = true
+      try {
+        const response = await vendorService.updateIncident(id, incidentData)
+        const index = this.incidents.findIndex((i) => i.id === id)
+        if (index !== -1) this.incidents[index] = response
+        toast.success('Incident updated!')
+        return response
+      } catch (error) {
+        toast.error('Failed to update incident')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteIncident(id) {
+      this.loading = true
+      try {
+        await vendorService.deleteIncident(id)
+        this.incidents = this.incidents.filter((i) => i.id !== id)
+        toast.success('Incident deleted')
+      } catch (error) {
+        toast.error('Failed to delete incident')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     async fetchCertifications(params = {}) {
       this.loading = true
       this.error = null
@@ -241,6 +277,135 @@ export const useVendorStore = defineStore('vendor', {
       } finally {
         this.loading = false
       }
-    }
-  }
+    },
+
+    async updateCertification(id, certData) {
+      this.loading = true
+      try {
+        const response = await vendorService.updateCertification(id, certData)
+        const index = this.certifications.findIndex((c) => c.id === id)
+        if (index !== -1) this.certifications[index] = response
+        toast.success('Certification updated!')
+        return response
+      } catch (error) {
+        toast.error('Failed to update certification')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteCertification(id) {
+      this.loading = true
+      try {
+        await vendorService.deleteCertification(id)
+        this.certifications = this.certifications.filter((c) => c.id !== id)
+        toast.success('Certification removed')
+      } catch (error) {
+        toast.error('Failed to delete certification')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchRiskHistory(vendorId) {
+      this.loading = true
+      try {
+        const response = await vendorService.getRiskHistory(vendorId)
+        this.riskHistory = response.history
+        return response
+      } catch (error) {
+        toast.error('Failed to fetch risk history')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchDependencies(vendorId) {
+      this.loading = true
+      try {
+        const response = await vendorService.getDependencies(vendorId)
+        this.dependencies = response
+        return response
+      } catch (error) {
+        toast.error('Failed to fetch dependencies')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchIncidentTrends() {
+      this.loading = true
+      try {
+        const response = await vendorService.getIncidentTrends()
+        this.incidentTrends = response
+        return response
+      } catch (error) {
+        toast.error('Failed to fetch incident trends')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchVendorContacts(vendorId) {
+      this.loading = true
+      try {
+        const response = await vendorService.getVendorContacts(vendorId)
+        this.vendorContacts = response
+        return response
+      } catch (error) {
+        toast.error('Failed to fetch contacts')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createVendorContact(vendorId, contactData) {
+      this.loading = true
+      try {
+        const response = await vendorService.createVendorContact(vendorId, contactData)
+        this.vendorContacts.push(response)
+        toast.success('Contact added!')
+        return response
+      } catch (error) {
+        toast.error('Failed to add contact')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async compareVendors(vendorIds) {
+      this.loading = true
+      try {
+        const response = await vendorService.compareVendors(vendorIds)
+        this.comparisonResults = response
+        return response
+      } catch (error) {
+        toast.error('Comparison failed')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchExpiringCertifications() {
+      this.loading = true
+      try {
+        const response = await vendorService.getExpiringCertifications()
+        this.expiringCertifications = response
+        return response
+      } catch (error) {
+        toast.error('Failed to fetch expiring certifications')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+  },
 })
