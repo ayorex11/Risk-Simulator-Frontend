@@ -160,19 +160,21 @@
       @close="closeEditModal"
       @save="handleVendorUpdated"
     />
-    <div v-if="showDeleteModal" class="modal-overlay glass" @click.self="showDeleteModal = false">
-      <div class="card delete-confirmation-card p-10 max-w-md w-full">
-        <h2 class="text-2xl font-black mb-4">Archive Vendor?</h2>
-        <p class="text-slate-600 mb-8">
-          Are you sure you want to remove <strong>{{ vendorToDelete?.name }}</strong
-          >? This will purge all associated risk assessments.
-        </p>
-        <div class="flex gap-4 justify-end">
-          <button @click="showDeleteModal = false" class="btn btn-secondary">Cancel</button>
-          <button @click="confirmDelete" class="btn btn-danger">Confirm Archive</button>
-        </div>
-      </div>
-    </div>
+
+    <DeleteConfirmationModal
+      v-if="showDeleteModal"
+      :item-name="vendorToDelete?.name"
+      title="Archive System Resource"
+      confirm-text="Confirm Permanent Archive"
+      @close="showDeleteModal = false"
+      @confirm="confirmDelete"
+    >
+      <template #description>
+        You are about to archive <strong>{{ vendorToDelete?.name }}</strong
+        >. This will purge all associated risk assessments, telemetry logs, and simulation histories
+        from the security dashboard.
+      </template>
+    </DeleteConfirmationModal>
   </div>
 </template>
 
@@ -183,6 +185,7 @@ import { useVendorStore } from '../stores/vendor'
 import NavBar from '../components/common/NavBar.vue'
 import LoadingSpinner from '../components/common/LoadingSpinner.vue'
 import VendorModal from '../components/vendors/VendorModal.vue'
+import DeleteConfirmationModal from '../components/common/DeleteConfirmationModal.vue'
 import { Plus, Search, Building, Calendar, Globe, Edit, Trash2 } from 'lucide-vue-next'
 
 const router = useRouter()

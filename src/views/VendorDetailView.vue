@@ -211,9 +211,16 @@
 
               <!-- Supply Chain Tab -->
               <div v-if="activeTab === 'supply-chain'" class="tab-pane animate-in-fast">
-                <div class="supply-grid-premium">
+                <div class="pane-head-premium">
+                  <GitBranch class="icon-primary lg" />
+                  <div>
+                    <h3>Supply Chain Dependencies</h3>
+                    <p>Mapping of upstream infrastructure and downstream cascading dependencies.</p>
+                  </div>
+                </div>
+                <div class="supply-grid-premium mt-8">
                   <div class="supply-stack">
-                    <h3 class="stack-title"><GitBranch class="icon-sm" /> Upstream (Depends On)</h3>
+                    <h3 class="stack-title">Upstream (Depends On)</h3>
                     <div
                       v-if="vendorStore.dependencies?.depends_on?.length === 0"
                       class="empty-mini"
@@ -235,9 +242,7 @@
                     </div>
                   </div>
                   <div class="supply-stack border-l border-slate-100 pl-8">
-                    <h3 class="stack-title">
-                      <GitBranch class="icon-sm rotate-180" /> Downstream (Depended By)
-                    </h3>
+                    <h3 class="stack-title">Downstream (Depended By)</h3>
                     <div
                       v-if="vendorStore.dependencies?.depended_by?.length === 0"
                       class="empty-mini"
@@ -273,22 +278,36 @@
                 <div v-if="currentVendor.incident_history?.length === 0" class="empty-state-lite">
                   Clean telemetry. No incidents on record for this entity.
                 </div>
-                <div v-else class="incident-board">
+                <div class="incident-board mt-8">
                   <div
                     v-for="incident in currentVendor.incident_history"
                     :key="incident.id"
-                    class="i-card-premium"
+                    class="i-card-premium hover-lift"
                   >
                     <div class="i-head">
-                      <span class="i-sev" :class="incident.severity"></span>
-                      <span class="i-title">{{ incident.title }}</span>
+                      <div class="flex items-center gap-3">
+                        <span class="i-sev" :class="incident.severity"></span>
+                        <span class="i-title">{{ incident.title }}</span>
+                      </div>
                       <span class="i-date">{{ formatDate(incident.incident_date) }}</span>
                     </div>
                     <p class="i-body">{{ incident.description }}</p>
                     <div class="i-foot">
-                      <span class="impact-txt"
-                        >Exposure: ${{ formatNumber(incident.financial_impact) }}</span
-                      >
+                      <div class="impact-metrics">
+                        <span class="impact-txt"
+                          >Exposure:
+                          <span class="font-black text-red-600"
+                            >${{ formatNumber(incident.financial_impact) }}</span
+                          ></span
+                        >
+                        <span class="impact-divider mx-3 text-slate-200">|</span>
+                        <span class="impact-txt capitalize"
+                          >Type:
+                          <span class="font-bold text-slate-700">{{
+                            incident.incident_type.replace('_', ' ')
+                          }}</span></span
+                        >
+                      </div>
                       <div class="flex gap-2">
                         <button
                           @click="editIncident(incident)"
@@ -298,7 +317,7 @@
                           <Edit class="icon-xs" />
                         </button>
                         <button
-                          @click="deleteIncident(incident.id)"
+                          @click="confirmDeleteIncident(incident)"
                           class="icon-btn-lite danger"
                           title="Delete record"
                         >
@@ -350,7 +369,7 @@
                             <Edit class="icon-xs" />
                           </button>
                           <button
-                            @click="deleteCertification(cert.id)"
+                            @click="confirmDeleteCert(cert)"
                             class="icon-btn-lite danger"
                             title="Remove Certificate"
                           >
@@ -377,8 +396,12 @@
 
               <!-- Contacts Tab -->
               <div v-if="activeTab === 'contacts'" class="tab-pane animate-in-fast">
-                <div class="section-title-premium mb-8">
-                  <User class="icon-primary" /> Incident & Technical Liaisons
+                <div class="pane-head-premium mb-8">
+                  <User class="icon-primary lg" />
+                  <div>
+                    <h3>Personnel Registry</h3>
+                    <p>Incident responders and technical liaisons for this organization.</p>
+                  </div>
                 </div>
                 <div class="contacts-board">
                   <!-- Primary (From Vendor) -->
@@ -460,19 +483,38 @@
       @save="fetchData"
     />
 
-    <div v-if="showDeleteModal" class="modal-overlay glass" @click.self="showDeleteModal = false">
-      <div class="card p-10 max-w-md w-full text-center">
-        <AlertTriangle class="large-icon text-red-500 mb-6 mx-auto" />
-        <h2 class="text-2xl font-black mb-4">Confirm Removal</h2>
-        <p class="text-muted mb-8">
-          Permanently remove <strong>{{ currentVendor?.name }}</strong> from the security dashboard?
-        </p>
-        <div class="flex gap-4">
-          <button @click="showDeleteModal = false" class="btn btn-secondary flex-1">Abort</button>
-          <button @click="confirmDelete" class="btn btn-danger flex-1">Confirm Archive</button>
-        </div>
-      </div>
-    </div>
+    <DeleteConfirmationModal
+      v-if="showDeleteModal"
+      :item-name="currentVendor?.name"
+      title="Archive System Resource"
+      confirm-text="Confirm Permanent Archive"
+      @close="showDeleteModal = false"
+      @confirm="confirmDelete"
+    >
+      <template #description>
+        You are about to archive <strong>{{ currentVendor?.name }}</strong
+        >. This will purge all associated risk assessments, telemetry logs, and simulation histories
+        from the security dashboard.
+      </template>
+    </DeleteConfirmationModal>
+
+    <DeleteConfirmationModal
+      v-if="itemToDelete && itemToDeleteType === 'incident'"
+      :item-name="itemToDelete.title"
+      title="Purge Incident Record"
+      confirm-text="Confirm Purge"
+      @close="closeDeleteModal"
+      @confirm="handleDeleteItem"
+    />
+
+    <DeleteConfirmationModal
+      v-if="itemToDelete && itemToDeleteType === 'certification'"
+      :item-name="itemToDelete.certification_type_display"
+      title="Revoke Compliance Record"
+      confirm-text="Revoke Record"
+      @close="closeDeleteModal"
+      @confirm="handleDeleteItem"
+    />
   </div>
 </template>
 
@@ -485,6 +527,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner.vue'
 import VendorModal from '../components/vendors/VendorModal.vue'
 import IncidentModal from '../components/vendors/IncidentModal.vue'
 import CertificationModal from '../components/vendors/CertificationModal.vue'
+import DeleteConfirmationModal from '../components/common/DeleteConfirmationModal.vue'
 import {
   ArrowLeft,
   Edit,
@@ -517,6 +560,8 @@ const activeTab = ref('overview')
 
 const selectedIncident = ref(null)
 const selectedCert = ref(null)
+const itemToDelete = ref(null)
+const itemToDeleteType = ref(null)
 
 const currentVendor = computed(() => vendorStore.currentVendor)
 
@@ -593,11 +638,9 @@ const editIncident = (incident) => {
   showIncidentModal.value = true
 }
 
-const deleteIncident = async (id) => {
-  if (confirm('Are you sure you want to remove this incident record?')) {
-    await vendorStore.deleteIncident(id)
-    await vendorStore.fetchVendor(route.params.id)
-  }
+const confirmDeleteIncident = (incident) => {
+  itemToDelete.value = incident
+  itemToDeleteType.value = 'incident'
 }
 
 const editCertification = (cert) => {
@@ -605,11 +648,27 @@ const editCertification = (cert) => {
   showCertModal.value = true
 }
 
-const deleteCertification = async (id) => {
-  if (confirm('Are you sure you want to remove this certification?')) {
-    await vendorStore.deleteCertification(id)
-    await vendorStore.fetchVendor(route.params.id)
+const confirmDeleteCert = (cert) => {
+  itemToDelete.value = cert
+  itemToDeleteType.value = 'certification'
+}
+
+const handleDeleteItem = async () => {
+  if (!itemToDelete.value) return
+
+  if (itemToDeleteType.value === 'incident') {
+    await vendorStore.deleteIncident(itemToDelete.value.id)
+  } else if (itemToDeleteType.value === 'certification') {
+    await vendorStore.deleteCertification(itemToDelete.value.id)
   }
+
+  await vendorStore.fetchVendor(route.params.id)
+  closeDeleteModal()
+}
+
+const closeDeleteModal = () => {
+  itemToDelete.value = null
+  itemToDeleteType.value = null
 }
 
 const closeIncidentModal = () => {

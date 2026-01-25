@@ -88,17 +88,42 @@
               </div>
             </div>
 
-            <div class="card mt-4 danger-zone">
-              <h2>Danger Zone</h2>
-              <p class="text-muted small">
-                Once you delete an organization, there is no going back. Please be certain.
+            <div class="card mt-6 danger-zone-premium glass shadow-lg border-red-100">
+              <div class="flex items-center gap-3 mb-6">
+                <div class="dz-icon-bg"><Trash2 class="icon-sm" /></div>
+                <h2 class="text-xl font-black text-slate-900">Danger Zone</h2>
+              </div>
+              <p class="text-slate-500 text-sm leading-relaxed mb-8">
+                Purging an entire organization is a
+                <span class="text-red-600 font-bold">critical operation</span>. All associated
+                vendors, simulations, and user profiles will be immediately disconnected.
               </p>
-              <button class="btn btn-danger btn-block mt-3" disabled>Delete Organization</button>
+              <button
+                @click="showDeleteOrgModal = true"
+                class="btn btn-danger btn-block py-4 font-black shadow-xl"
+              >
+                Initialize Organization Purge
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Modals -->
+    <DeleteConfirmationModal
+      v-if="showDeleteOrgModal"
+      :item-name="organization?.name"
+      title="Purge Active Organization"
+      confirm-text="Initialize Permanent Purge"
+      @close="showDeleteOrgModal = false"
+      @confirm="handleOrgDelete"
+    >
+      <template #description>
+        You are about to permanently purge <strong>{{ organization?.name }}</strong
+        >. This operation is restricted to system administrators and cannot be undone.
+      </template>
+    </DeleteConfirmationModal>
   </div>
 </template>
 
@@ -106,12 +131,14 @@
 import { ref, onMounted } from 'vue'
 import { useCoreStore } from '../stores/core'
 import NavBar from '../components/common/NavBar.vue'
-import { AlertTriangle, Users, UserPlus } from 'lucide-vue-next'
+import DeleteConfirmationModal from '../components/common/DeleteConfirmationModal.vue'
+import { AlertTriangle, Users, UserPlus, Trash2 } from 'lucide-vue-next'
 
 const coreStore = useCoreStore()
 const loading = ref(true)
 const saving = ref(false)
 const organization = ref(null)
+const showDeleteOrgModal = ref(false)
 
 const form = ref({
   name: '',
@@ -153,6 +180,11 @@ const handleUpdate = async () => {
   } finally {
     saving.value = false
   }
+}
+
+const handleOrgDelete = () => {
+  alert('For security reasons, organization deletion must be requested via support.')
+  showDeleteOrgModal.value = false
 }
 
 onMounted(fetchOrg)
@@ -231,8 +263,20 @@ onMounted(fetchOrg)
   height: 18px;
 }
 
-.danger-zone h2 {
+/* Danger Zone Premium */
+.danger-zone-premium {
+  border: 1px solid #fee2e2;
+  background: white;
+}
+.dz-icon-bg {
+  width: 32px;
+  height: 32px;
+  background: #fee2e2;
   color: #ef4444;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (max-width: 768px) {

@@ -262,7 +262,7 @@
       </div>
       <div class="footer-bottom">
         <div class="container">
-          <p>&copy; 2025 Scenario Forge. Final Year Project by Ayomide Emmanuel Adewale.</p>
+          <p>&copy; 2026 Scenario Forge. Final Year Project by Ayomide Emmanuel Adewale.</p>
         </div>
       </div>
     </footer>
