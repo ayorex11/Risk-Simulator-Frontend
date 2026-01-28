@@ -22,6 +22,18 @@
         <!-- Event Identity -->
         <div class="form-section-premium">
           <h3 class="section-tag">Event Identity</h3>
+
+          <!-- Vendor Selection (only shown when vendorId is not provided) -->
+          <div v-if="!vendorId" class="form-group">
+            <label for="vendor" class="form-label-modern">Affected Vendor *</label>
+            <select id="vendor" v-model="formData.vendor" class="form-input-premium" required>
+              <option value="" disabled>Select a vendor...</option>
+              <option v-for="vendor in vendors" :key="vendor.id" :value="vendor.id">
+                {{ vendor.name }} ({{ vendor.risk_level }})
+              </option>
+            </select>
+          </div>
+
           <div class="form-group">
             <label for="title" class="form-label-modern">Incident Title *</label>
             <input
@@ -257,16 +269,17 @@ import { useVendorStore } from '../../stores/vendor'
 import { X, AlertTriangle } from 'lucide-vue-next'
 
 const props = defineProps({
-  vendorId: { type: [Number, String], required: true },
+  vendorId: { type: [Number, String], required: false, default: null },
   incident: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close', 'save'])
 const vendorStore = useVendorStore()
 const loading = ref(false)
+const vendors = ref([])
 
 const formData = ref({
-  vendor: props.vendorId,
+  vendor: props.vendorId || '',
   title: '',
   incident_type: 'outage', // backend: 'outage' not 'service_outage'
   severity: 'medium',
@@ -286,7 +299,17 @@ const formData = ref({
   disclosure_url: '',
 })
 
-onMounted(() => {
+onMounted(async () => {
+  // Fetch vendors if vendorId is not provided
+  if (!props.vendorId) {
+    try {
+      await vendorStore.fetchVendors()
+      vendors.value = vendorStore.vendors
+    } catch (error) {
+      console.error('Failed to fetch vendors:', error)
+    }
+  }
+
   if (props.incident) {
     Object.keys(formData.value).forEach((key) => {
       if (props.incident[key] !== undefined) {
