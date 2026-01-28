@@ -19,7 +19,10 @@
                 global vendor ecosystem.
               </p>
             </div>
-            <div class="header-actions">
+            <div class="header-actions flex gap-4">
+              <router-link to="/incidents" class="btn btn-outline">
+                <ChevronLeft class="icon-sm" /> Back to Records
+              </router-link>
               <router-link to="/vendors" class="btn-executive">
                 <Building2 class="icon-sm" /> Infrastructure Overview
               </router-link>
@@ -194,6 +197,7 @@ import {
   Zap,
   ShieldAlert,
   Target,
+  ChevronLeft,
 } from 'lucide-vue-next'
 
 const vendorStore = useVendorStore()

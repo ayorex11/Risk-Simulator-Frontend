@@ -12,6 +12,11 @@ export default {
     return response.data
   },
 
+  async adminUpdateName(nameData) {
+    const response = await api.patch('/core/admin/edit/', nameData)
+    return response.data
+  },
+
   async listUsers(params = {}) {
     const response = await api.get('/core/users/', { params })
     return response.data
@@ -28,7 +33,7 @@ export default {
   },
 
   async updateUserProfile(userId, profileData) {
-    const response = await api.patch(`/core/users/${userId}/profile/`, profileData)
+    const response = await api.patch(`/core/users/${userId}/update/`, profileData)
     return response.data
   },
 

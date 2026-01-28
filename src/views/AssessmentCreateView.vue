@@ -53,10 +53,24 @@
               </div>
 
               <div class="form-group">
-                <label for="status" class="form-label">Status</label>
+                <label for="template" class="form-label">Assessment Template (Recommended)</label>
+                <select id="template" v-model="formData.template_id" class="form-input">
+                  <option value="">Default (All Questions)</option>
+                  <option v-for="template in templates" :key="template.id" :value="template.id">
+                    {{ template.name }} ({{ template.question_count }} questions)
+                  </option>
+                </select>
+                <p class="form-hint">
+                  Selecting a template filters questions to a specific framework (e.g., NIST, ISO
+                  27001).
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label for="status" class="form-label">Initial Status</label>
                 <select id="status" v-model="formData.status" class="form-input">
-                  <option value="draft">Draft</option>
-                  <option value="in_progress">In Progress</option>
+                  <option value="draft">Draft (Setup only)</option>
+                  <option value="in_progress">In Progress (Start Questionnaire)</option>
                 </select>
               </div>
 
@@ -99,9 +113,11 @@ const assessmentStore = useAssessmentStore()
 const vendorStore = useVendorStore()
 
 const vendors = ref([])
+const templates = ref([])
 const formData = ref({
   vendor: '',
   assessment_type: '',
+  template_id: '',
   status: 'draft',
   notes: '',
   // Initialize all category scores to 0
@@ -144,7 +160,10 @@ const handleSubmit = async () => {
     const assessment = await assessmentStore.createAssessment(formData.value)
     // Navigate to questionnaire if status is in_progress, otherwise to detail
     if (formData.value.status === 'in_progress') {
-      router.push(`/assessments/${assessment.id}/questionnaire`)
+      const questionnairePath = formData.value.template_id
+        ? `/assessments/${assessment.id}/questionnaire?template_id=${formData.value.template_id}`
+        : `/assessments/${assessment.id}/questionnaire`
+      router.push(questionnairePath)
     } else {
       router.push(`/assessments/${assessment.id}`)
     }
@@ -158,9 +177,14 @@ const handleCancel = () => {
 }
 
 onMounted(async () => {
-  // Fetch active vendors
-  await vendorStore.fetchVendors({ is_active: true })
+  // Fetch active vendors and templates
+  await Promise.all([
+    vendorStore.fetchVendors({ is_active: true }),
+    assessmentStore.fetchTemplates(),
+  ])
+
   vendors.value = vendorStore.vendors.filter((v) => v.is_active)
+  templates.value = assessmentStore.templates.filter((t) => t.is_active)
 })
 </script>
 
@@ -224,5 +248,11 @@ onMounted(async () => {
   justify-content: flex-end;
   padding-top: 24px;
   border-top: 1px solid #e5e7eb;
+}
+
+.form-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 6px;
 }
 </style>

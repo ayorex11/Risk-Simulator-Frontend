@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import coreService from '../services/coreService'
+import authService from '../services/authService'
 import { useToast } from 'vue-toastification'
 
 const toast = useToast()
 
 export const useCoreStore = defineStore('core', {
   state: () => ({
-    currentUser: null,
+    currentUser: authService.getCurrentUser(),
     organization: null,
     permissions: null,
     dashboardData: null,
@@ -22,7 +23,11 @@ export const useCoreStore = defineStore('core', {
     isAdmin: (state) => state.permissions?.role === 'admin',
     isManager: (state) => ['admin', 'manager'].includes(state.permissions?.role),
     isAnalyst: (state) => ['admin', 'analyst', 'manager'].includes(state.permissions?.role),
-    hasOrganization: (state) => !!state.organization,
+    hasOrganization: (state) =>
+      !!state.organization ||
+      !!state.currentUser?.organization ||
+      !!state.currentUser?.organization_id ||
+      !!state.currentUser?.profile?.organization,
     userRole: (state) => state.permissions?.role || 'viewer',
   },
 
@@ -63,6 +68,30 @@ export const useCoreStore = defineStore('core', {
         return fullUser
       } catch (error) {
         const errorMsg = error.response?.data?.error || 'Failed to update profile'
+        this.error = errorMsg
+        toast.error(errorMsg)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async adminUpdateName(nameData) {
+      this.loading = true
+      this.error = null
+      try {
+        await coreService.adminUpdateName(nameData)
+        const fullUser = await this.fetchCurrentUser()
+
+        // Sync with auth store
+        const { useAuthStore } = await import('./auth')
+        const authStore = useAuthStore()
+        authStore.user = fullUser
+        localStorage.setItem('user', JSON.stringify(fullUser))
+
+        return fullUser
+      } catch (error) {
+        const errorMsg = error.response?.data?.error || 'Failed to update name'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error
@@ -226,6 +255,19 @@ export const useCoreStore = defineStore('core', {
       this.error = null
       try {
         const response = await coreService.updateUserProfile(userId, profileData)
+
+        // If we updated the current user, sync the store and local storage
+        if (this.currentUser && String(userId) === String(this.currentUser.id)) {
+          // Re-fetch the full user object to ensure all fields are correctly populated
+          const fullUser = await this.fetchCurrentUser()
+
+          // Sync with auth store
+          const { useAuthStore } = await import('./auth')
+          const authStore = useAuthStore()
+          authStore.user = fullUser
+          localStorage.setItem('user', JSON.stringify(fullUser))
+        }
+
         // Refresh users list if we were displaying it
         if (this.users.length > 0) {
           const index = this.users.findIndex((u) => u.id === userId)

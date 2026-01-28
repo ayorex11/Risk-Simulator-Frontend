@@ -37,6 +37,15 @@
             </div>
             <div class="header-actions">
               <button
+                v-if="comparison"
+                @click="goToComparison"
+                class="btn btn-outline"
+                title="View comparison with previous assessment"
+              >
+                <TrendingUp class="icon" />
+                Comparison
+              </button>
+              <button
                 v-if="
                   currentAssessment.status === 'draft' || currentAssessment.status === 'in_progress'
                 "
@@ -44,7 +53,17 @@
                 class="btn btn-outline"
               >
                 <Edit class="icon" />
-                Edit Assessment
+                Edit Questionnaire
+              </button>
+              <button
+                v-if="
+                  currentAssessment.status === 'draft' || currentAssessment.status === 'in_progress'
+                "
+                @click="showEditFindingsModal = true"
+                class="btn btn-secondary"
+              >
+                <FileText class="icon" />
+                Edit Findings
               </button>
               <button
                 v-if="currentAssessment.status === 'completed' && canApprove"
@@ -53,26 +72,54 @@
                 :disabled="assessmentStore.loading"
               >
                 <CheckCircle class="icon" />
-                Approve
+                Approve Assessment
               </button>
             </div>
           </div>
 
-          <!-- Score Overview -->
-          <div class="score-overview card">
-            <div class="score-display">
-              <div class="score-circle" :class="getScoreClass(currentAssessment.overall_score)">
-                <span class="score-number">{{ currentAssessment.overall_score }}</span>
-                <span class="score-label">Overall Score</span>
+          <!-- Premium Score Banner -->
+          <div class="score-banner card glass shadow-lg">
+            <div class="banner-content">
+              <div class="score-hero">
+                <div
+                  class="score-ring-wrapper"
+                  :class="getScoreClass(currentAssessment.overall_score)"
+                >
+                  <div class="score-ring">
+                    <span class="score-number">{{ currentAssessment.overall_score }}</span>
+                    <span class="score-label">Points</span>
+                  </div>
+                  <div class="glow"></div>
+                </div>
+                <div class="score-text">
+                  <span
+                    class="rating-badge"
+                    :class="getScoreClass(currentAssessment.overall_score)"
+                  >
+                    {{ getScoreRating(currentAssessment.overall_score) }}
+                  </span>
+                  <h2>Security Performance</h2>
+                  <p class="assessor-info">
+                    Certified by
+                    <strong>{{ currentAssessment.assessed_by_name || 'System' }}</strong>
+                  </p>
+                </div>
               </div>
-              <div class="score-info">
-                <h2>Assessment Score</h2>
-                <p class="score-rating" :class="getScoreClass(currentAssessment.overall_score)">
-                  {{ getScoreRating(currentAssessment.overall_score) }}
-                </p>
-                <p class="text-muted">
-                  Assessed by: {{ currentAssessment.assessed_by_name || 'N/A' }}
-                </p>
+
+              <!-- Comparison Mini Card -->
+              <div v-if="comparison" @click="goToComparison" class="comparison-mini card clickable">
+                <div class="mini-header">
+                  <TrendingUp v-if="comparison.trend === 'improving'" class="trend-icon" />
+                  <TrendingDown v-else-if="comparison.trend === 'declining'" class="trend-icon" />
+                  <span>{{ comparison.trend.toUpperCase() }}</span>
+                </div>
+                <div class="mini-value" :class="comparison.trend">
+                  {{ comparison.changes.overall > 0 ? '+' : '' }}{{ comparison.changes.overall }}
+                  <span class="percentage"
+                    >({{ Math.round(comparison.improvement_percentage) }}%)</span
+                  >
+                </div>
+                <div class="mini-footer">vs Previous Audit</div>
               </div>
             </div>
           </div>
@@ -84,103 +131,16 @@
               Category Breakdown
             </h3>
             <div class="scores-grid">
-              <div class="score-item">
-                <div class="score-header">
-                  <span class="score-name">Access Control</span>
-                  <span class="score-value">{{ currentAssessment.access_control_score }}/100</span>
+              <div v-for="(label, key) in categoryLabelMap" :key="key" class="score-card-mini">
+                <div class="mini-score-header">
+                  <span class="mini-cat-label">{{ label }}</span>
+                  <span class="mini-cat-value">{{ currentAssessment[key + '_score'] || 0 }}%</span>
                 </div>
-                <div class="progress-bar">
+                <div class="mini-progress">
                   <div
-                    class="progress-fill"
-                    :style="{ width: `${currentAssessment.access_control_score}%` }"
-                  ></div>
-                </div>
-              </div>
-
-              <div class="score-item">
-                <div class="score-header">
-                  <span class="score-name">Data Protection</span>
-                  <span class="score-value">{{ currentAssessment.data_protection_score }}/100</span>
-                </div>
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{ width: `${currentAssessment.data_protection_score}%` }"
-                  ></div>
-                </div>
-              </div>
-
-              <div class="score-item">
-                <div class="score-header">
-                  <span class="score-name">Network Security</span>
-                  <span class="score-value"
-                    >{{ currentAssessment.network_security_score }}/100</span
-                  >
-                </div>
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{ width: `${currentAssessment.network_security_score}%` }"
-                  ></div>
-                </div>
-              </div>
-
-              <div class="score-item">
-                <div class="score-header">
-                  <span class="score-name">Incident Response</span>
-                  <span class="score-value"
-                    >{{ currentAssessment.incident_response_score }}/100</span
-                  >
-                </div>
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{ width: `${currentAssessment.incident_response_score}%` }"
-                  ></div>
-                </div>
-              </div>
-
-              <div class="score-item">
-                <div class="score-header">
-                  <span class="score-name">Vulnerability Management</span>
-                  <span class="score-value"
-                    >{{ currentAssessment.vulnerability_management_score }}/100</span
-                  >
-                </div>
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{ width: `${currentAssessment.vulnerability_management_score}%` }"
-                  ></div>
-                </div>
-              </div>
-
-              <div class="score-item">
-                <div class="score-header">
-                  <span class="score-name">Business Continuity</span>
-                  <span class="score-value"
-                    >{{ currentAssessment.business_continuity_score }}/100</span
-                  >
-                </div>
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{ width: `${currentAssessment.business_continuity_score}%` }"
-                  ></div>
-                </div>
-              </div>
-
-              <div class="score-item">
-                <div class="score-header">
-                  <span class="score-name">Security Governance</span>
-                  <span class="score-value"
-                    >{{ currentAssessment.security_governance_score }}/100</span
-                  >
-                </div>
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{ width: `${currentAssessment.security_governance_score}%` }"
+                    class="mini-progress-fill"
+                    :class="getScoreClass(currentAssessment[key + '_score'] || 0)"
+                    :style="{ width: `${currentAssessment[key + '_score'] || 0}%` }"
                   ></div>
                 </div>
               </div>
@@ -189,44 +149,70 @@
 
           <!-- Assessment Details Grid -->
           <div class="details-grid">
-            <!-- Notes -->
-            <div v-if="currentAssessment.notes" class="detail-card card">
-              <h3>
-                <FileText class="section-icon" />
-                Notes
-              </h3>
-              <p>{{ currentAssessment.notes }}</p>
-            </div>
-
-            <!-- Findings -->
-            <div v-if="currentAssessment.findings" class="detail-card card">
-              <h3>
-                <AlertTriangle class="section-icon" />
-                Key Findings
-              </h3>
-              <p>{{ currentAssessment.findings }}</p>
-            </div>
-
-            <!-- Recommendations -->
-            <div v-if="currentAssessment.recommendations" class="detail-card card">
-              <h3>
-                <Lightbulb class="section-icon" />
-                Recommendations
-              </h3>
-              <p>{{ currentAssessment.recommendations }}</p>
+            <!-- Management Details -->
+            <div class="detail-card card findings-card">
+              <div class="detail-header">
+                <h3>
+                  <FileText class="section-icon" />
+                  Findings & Summary
+                </h3>
+                <button
+                  v-if="currentAssessment.status !== 'approved'"
+                  @click="showEditFindingsModal = true"
+                  class="btn-text"
+                >
+                  Edit
+                </button>
+              </div>
+              <div class="findings-content">
+                <div class="content-group">
+                  <label>General Notes</label>
+                  <p>{{ currentAssessment.notes || 'No notes provided.' }}</p>
+                </div>
+                <div class="content-group">
+                  <label>Key Findings</label>
+                  <p>{{ currentAssessment.findings || 'No findings recorded yet.' }}</p>
+                </div>
+                <div class="content-group">
+                  <label>Recommendations</label>
+                  <p>
+                    {{ currentAssessment.recommendations || 'No recommendations recorded yet.' }}
+                  </p>
+                </div>
+              </div>
             </div>
 
             <!-- Follow-up -->
-            <div v-if="currentAssessment.requires_followup" class="detail-card card">
+            <div class="detail-card card followup-card">
               <h3>
                 <Calendar class="section-icon" />
-                Follow-up Required
+                Management & Follow-up
               </h3>
-              <p>
-                <strong>Date:</strong> {{ formatDate(currentAssessment.followup_date) }}<br />
-                <strong>Status:</strong>
-                {{ currentAssessment.followup_completed ? 'Completed' : 'Pending' }}
-              </p>
+              <div class="followup-details">
+                <div class="info-row">
+                  <span class="label">Requires Follow-up:</span>
+                  <span class="value" :class="{ highlight: currentAssessment.requires_followup }">
+                    {{ currentAssessment.requires_followup ? 'Yes' : 'No' }}
+                  </span>
+                </div>
+                <div v-if="currentAssessment.requires_followup" class="info-row">
+                  <span class="label">Follow-up Date:</span>
+                  <span class="value">{{ formatDate(currentAssessment.followup_date) }}</span>
+                </div>
+                <div v-if="currentAssessment.requires_followup" class="info-row">
+                  <span class="label">Follow-up Status:</span>
+                  <span
+                    class="status-pill"
+                    :class="currentAssessment.followup_completed ? 'completed' : 'pending'"
+                  >
+                    {{ currentAssessment.followup_completed ? 'Completed' : 'Pending' }}
+                  </span>
+                </div>
+                <div v-if="currentAssessment.approved_by" class="approval-info">
+                  <label>Approval Information</label>
+                  <p>Approved on {{ formatDate(currentAssessment.approved_at) }}</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -237,7 +223,11 @@
                 <Paperclip class="section-icon" />
                 Supporting Evidence
               </h3>
-              <button @click="showUploadModal = true" class="btn btn-outline btn-sm">
+              <button
+                v-if="canUploadEvidence"
+                @click="showUploadModal = true"
+                class="btn btn-outline btn-sm"
+              >
                 <Upload class="icon" />
                 Upload Evidence
               </button>
@@ -260,7 +250,11 @@
                     {{ formatDate(item.uploaded_at) }}
                   </span>
                 </div>
-                <button @click="deleteEvidence(item.id)" class="btn-icon-danger">
+                <button
+                  v-if="canDeleteEvidence(item)"
+                  @click="deleteEvidence(item.id)"
+                  class="btn-icon-danger"
+                >
                   <Trash2 class="icon" />
                 </button>
               </div>
@@ -369,6 +363,58 @@
         </form>
       </div>
     </div>
+
+    <!-- Edit Findings Modal -->
+    <div
+      v-if="showEditFindingsModal"
+      class="modal-overlay"
+      @click.self="showEditFindingsModal = false"
+    >
+      <div class="edit-findings-modal">
+        <div class="modal-header">
+          <h2>Edit Findings & Recommendations</h2>
+          <button @click="showEditFindingsModal = false" class="close-btn">
+            <X class="icon" />
+          </button>
+        </div>
+        <form @submit.prevent="handleUpdateFindings" class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Internal Notes</label>
+            <textarea v-model="findingsForm.notes" class="form-input" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Key Findings</label>
+            <textarea v-model="findingsForm.findings" class="form-input" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Recommendations</label>
+            <textarea v-model="findingsForm.recommendations" class="form-input" rows="4"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group checkbox-group">
+              <label>
+                <input type="checkbox" v-model="findingsForm.requires_followup" />
+                Requires Follow-up
+              </label>
+            </div>
+            <div v-if="findingsForm.requires_followup" class="form-group">
+              <label class="form-label">Follow-up Date</label>
+              <input type="date" v-model="findingsForm.followup_date" class="form-input" required />
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" @click="showEditFindingsModal = false" class="btn btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" :disabled="assessmentStore.loading">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -385,8 +431,6 @@ import {
   CheckCircle,
   BarChart,
   FileText,
-  AlertTriangle,
-  Lightbulb,
   Calendar,
   Paperclip,
   Upload,
@@ -403,8 +447,20 @@ const assessmentStore = useAssessmentStore()
 const coreStore = useCoreStore()
 
 const showUploadModal = ref(false)
+const showEditFindingsModal = ref(false)
 const evidence = ref([])
 const comparison = ref(null)
+
+const categoryLabelMap = {
+  access_control: 'Access Control',
+  data_protection: 'Data Protection',
+  network_security: 'Network Security',
+  incident_response: 'Incident Response',
+  vulnerability_management: 'Vulnerability Management',
+  business_continuity: 'Business Continuity',
+  security_governance: 'Security Governance',
+}
+
 const evidenceForm = ref({
   title: '',
   evidence_type: 'document',
@@ -412,8 +468,25 @@ const evidenceForm = ref({
   file: null,
 })
 
+const findingsForm = ref({
+  notes: '',
+  findings: '',
+  recommendations: '',
+  requires_followup: false,
+  followup_date: '',
+})
+
 const currentAssessment = computed(() => assessmentStore.currentAssessment)
 const canApprove = computed(() => ['admin', 'manager'].includes(coreStore.permissions?.role))
+const canUploadEvidence = computed(() =>
+  ['admin', 'manager', 'analyst'].includes(coreStore.permissions?.role),
+)
+
+const canDeleteEvidence = (item) => {
+  // Can delete if admin or if user uploaded it
+  const currentUser = coreStore.currentUser
+  return coreStore.permissions?.role === 'admin' || item.uploaded_by === currentUser?.id
+}
 
 const getScoreClass = (score) => {
   if (score >= 80) return 'excellent'
@@ -442,12 +515,26 @@ const goToQuestionnaire = () => {
   router.push(`/assessments/${route.params.id}/questionnaire`)
 }
 
+const goToComparison = () => {
+  router.push(`/assessments/${route.params.id}/compare`)
+}
+
 const approveAssessment = async () => {
   try {
     await assessmentStore.approveAssessment(route.params.id)
     await assessmentStore.fetchAssessment(route.params.id)
   } catch (error) {
     console.error('Failed to approve assessment:', error)
+  }
+}
+
+const handleUpdateFindings = async () => {
+  try {
+    await assessmentStore.updateAssessment(route.params.id, findingsForm.value)
+    showEditFindingsModal.value = false
+    await assessmentStore.fetchAssessment(route.params.id)
+  } catch (error) {
+    console.error('Failed to update findings:', error)
   }
 }
 
@@ -483,13 +570,23 @@ const deleteEvidence = async (evidenceId) => {
 }
 
 onMounted(async () => {
-  await assessmentStore.fetchAssessment(route.params.id)
+  const assessment = await assessmentStore.fetchAssessment(route.params.id)
   evidence.value = await assessmentStore.fetchEvidence(route.params.id)
+
+  if (assessment) {
+    findingsForm.value = {
+      notes: assessment.notes || '',
+      findings: assessment.findings || '',
+      recommendations: assessment.recommendations || '',
+      requires_followup: assessment.requires_followup || false,
+      followup_date: assessment.followup_date || '',
+    }
+  }
 
   // Try to fetch comparison
   try {
     comparison.value = await assessmentStore.compareAssessments(route.params.id)
-  } catch (error) {
+  } catch {
     // No previous assessment to compare
     console.log('No previous assessment for comparison')
   }
@@ -497,6 +594,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Reuse all the existing styles from your original file */
 .assessment-detail-page {
   min-height: calc(100vh - 72px);
   padding: 40px 0;
@@ -601,71 +699,191 @@ onMounted(async () => {
   gap: 12px;
 }
 
-/* Score Overview */
-.score-overview {
+/* Score Banner */
+.score-banner {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   margin-bottom: 32px;
+  overflow: hidden;
+  position: relative;
+  padding: 32px !important;
 }
 
-.score-display {
+.banner-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.score-hero {
   display: flex;
   align-items: center;
   gap: 32px;
 }
 
-.score-circle {
-  width: 160px;
-  height: 160px;
+.score-ring-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.score-ring {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
+  background: white;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 8px solid;
+  border: 4px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
 }
 
-.score-circle.excellent {
-  background: #d1fae5;
+.excellent .score-ring {
   border-color: #10b981;
 }
-
-.score-circle.good {
-  background: #dbeafe;
+.good .score-ring {
   border-color: #3b82f6;
 }
-
-.score-circle.fair {
-  background: #fef3c7;
+.fair .score-ring {
   border-color: #f59e0b;
 }
-
-.score-circle.poor {
-  background: #fee2e2;
+.poor .score-ring {
   border-color: #ef4444;
+}
+
+.glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150%;
+  height: 150%;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.15;
+  z-index: 1;
+}
+
+.excellent .glow {
+  background: #10b981;
+}
+.good .glow {
+  background: #3b82f6;
+}
+.fair .glow {
+  background: #f59e0b;
+}
+.poor .glow {
+  background: #ef4444;
 }
 
 .score-number {
   font-size: 48px;
-  font-weight: 700;
+  font-weight: 800;
+  color: #1e293b;
   line-height: 1;
 }
 
 .score-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.score-text h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 12px 0 4px;
+}
+
+.rating-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rating-badge.excellent {
+  background: #dcfce7;
+  color: #15803d;
+}
+.rating-badge.good {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.rating-badge.fair {
+  background: #fef3c7;
+  color: #b45309;
+}
+.rating-badge.poor {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.assessor-info {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Comparison Mini */
+.comparison-mini {
+  padding: 20px !important;
+  width: 180px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.comparison-mini.clickable:hover {
+  transform: translateY(-4px);
+  border-color: #3b82f6;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.mini-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.mini-value {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.mini-value.improving {
+  color: #10b981;
+}
+.mini-value.declining {
+  color: #ef4444;
+}
+
+.percentage {
   font-size: 14px;
   font-weight: 600;
-  margin-top: 8px;
+  opacity: 0.8;
 }
 
-.score-info h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-  margin-bottom: 8px;
-}
-
-.score-rating {
-  font-size: 20px;
+.mini-footer {
+  font-size: 11px;
   font-weight: 600;
-  margin-bottom: 8px;
+  color: #94a3b8;
 }
 
 .score-rating.excellent {
@@ -680,8 +898,56 @@ onMounted(async () => {
   color: #f59e0b;
 }
 
-.score-rating.poor {
-  color: #ef4444;
+/* Category Grid */
+.score-card-mini {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.mini-score-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.mini-cat-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+.mini-cat-value {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.mini-progress {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mini-progress-fill.excellent {
+  background: #10b981;
+}
+.mini-progress-fill.good {
+  background: #3b82f6;
+}
+.mini-progress-fill.fair {
+  background: #f59e0b;
+}
+.mini-progress-fill.poor {
+  background: #ef4444;
 }
 
 /* Category Scores */
@@ -767,9 +1033,105 @@ onMounted(async () => {
   margin-bottom: 16px;
 }
 
-.detail-card p {
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
+
+.findings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.content-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.content-group p {
   color: #4b5563;
   line-height: 1.6;
+}
+
+.followup-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.info-row .label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.info-row .value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-row .value.highlight {
+  color: #ef4444;
+}
+
+.status-pill {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-pill.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-pill.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.approval-info {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.approval-info label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 4px;
 }
 
 /* Evidence Section */
@@ -925,7 +1287,8 @@ onMounted(async () => {
   z-index: 1000;
 }
 
-.upload-modal {
+.upload-modal,
+.edit-findings-modal {
   background: white;
   border-radius: 16px;
   max-width: 600px;
@@ -965,6 +1328,52 @@ onMounted(async () => {
   padding: 24px;
 }
 
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-hint {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
 .modal-actions {
   display: flex;
   gap: 12px;
@@ -982,6 +1391,18 @@ onMounted(async () => {
   .score-display {
     flex-direction: column;
     text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .scores-grid,
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>

@@ -24,6 +24,10 @@
               <div class="progress-bar-large">
                 <div class="progress-fill-large" :style="{ width: `${progressPercentage}%` }"></div>
               </div>
+              <div v-if="answeredCount > 0" class="score-preview">
+                Estimated Score:
+                <span :class="getScoreClass(previewOverallScore)">{{ previewOverallScore }}</span>
+              </div>
             </div>
           </div>
 
@@ -73,7 +77,7 @@
                         type="radio"
                         :name="`question-${question.id}`"
                         :value="true"
-                        v-model="responses[question.id]"
+                        v-model="responses[question.id].response"
                         @change="updateResponse(question.id)"
                       />
                       <span>Yes</span>
@@ -83,7 +87,7 @@
                         type="radio"
                         :name="`question-${question.id}`"
                         :value="false"
-                        v-model="responses[question.id]"
+                        v-model="responses[question.id].response"
                         @change="updateResponse(question.id)"
                       />
                       <span>No</span>
@@ -98,13 +102,13 @@
                       v-for="rating in 5"
                       :key="rating"
                       class="rating-label"
-                      :class="{ selected: responses[question.id] === rating }"
+                      :class="{ selected: responses[question.id].response === rating }"
                     >
                       <input
                         type="radio"
                         :name="`question-${question.id}`"
                         :value="rating"
-                        v-model="responses[question.id]"
+                        v-model="responses[question.id].response"
                         @change="updateResponse(question.id)"
                       />
                       <span>{{ rating }}</span>
@@ -131,7 +135,7 @@
                         type="radio"
                         :name="`question-${question.id}`"
                         :value="option"
-                        v-model="responses[question.id]"
+                        v-model="responses[question.id].response"
                         @change="updateResponse(question.id)"
                       />
                       <span>{{ option }}</span>
@@ -142,7 +146,7 @@
                 <!-- Text Response -->
                 <div v-else-if="question.response_type === 'text'" class="response-section">
                   <textarea
-                    v-model="responses[question.id]"
+                    v-model="responses[question.id].response"
                     @blur="updateResponse(question.id)"
                     class="form-input"
                     rows="4"
@@ -155,7 +159,7 @@
                   <label class="form-label">Score (0-100)</label>
                   <input
                     type="number"
-                    v-model.number="scores[question.id]"
+                    v-model.number="responses[question.id].score"
                     @blur="updateResponse(question.id)"
                     class="form-input score-field"
                     min="0"
@@ -168,7 +172,7 @@
                 <div class="notes-input">
                   <label class="form-label">Notes (optional)</label>
                   <textarea
-                    v-model="notes[question.id]"
+                    v-model="responses[question.id].notes"
                     @blur="updateResponse(question.id)"
                     class="form-input"
                     rows="2"
@@ -223,9 +227,8 @@ const assessmentStore = useAssessmentStore()
 
 const questionnaire = ref(null)
 const activeCategory = ref(0)
+// Changed: Now store responses as objects with response, score, and notes
 const responses = ref({})
-const scores = ref({})
-const notes = ref({})
 
 const currentAssessment = computed(() => assessmentStore.currentAssessment)
 const currentCategory = computed(() => questionnaire.value?.categories[activeCategory.value])
@@ -236,9 +239,10 @@ const totalQuestions = computed(() => {
 })
 
 const answeredCount = computed(() => {
-  return Object.keys(responses.value).filter(
-    (key) => responses.value[key] !== undefined && responses.value[key] !== null,
-  ).length
+  return Object.keys(responses.value).filter((key) => {
+    const r = responses.value[key]
+    return r && r.response !== undefined && r.response !== null && r.response !== ''
+  }).length
 })
 
 const progressPercentage = computed(() => {
@@ -246,7 +250,27 @@ const progressPercentage = computed(() => {
   return Math.round((answeredCount.value / totalQuestions.value) * 100)
 })
 
-const updateResponse = (questionId) => {
+const previewOverallScore = computed(() => {
+  const categoryScores = calculateCategoryScores()
+  return Math.round(
+    (categoryScores.access_control_score || 0) * 0.2 +
+      (categoryScores.data_protection_score || 0) * 0.2 +
+      (categoryScores.network_security_score || 0) * 0.15 +
+      (categoryScores.incident_response_score || 0) * 0.15 +
+      (categoryScores.vulnerability_management_score || 0) * 0.15 +
+      (categoryScores.business_continuity_score || 0) * 0.1 +
+      (categoryScores.security_governance_score || 0) * 0.05,
+  )
+})
+
+const getScoreClass = (score) => {
+  if (score >= 80) return 'excellent'
+  if (score >= 60) return 'good'
+  if (score >= 40) return 'fair'
+  return 'poor'
+}
+
+const updateResponse = () => {
   // Auto-save responses
   saveProgress()
 }
@@ -269,7 +293,7 @@ const saveProgress = async () => {
 }
 
 const calculateCategoryScores = () => {
-  const scores = {
+  const categoryResults = {
     access_control_score: 0,
     data_protection_score: 0,
     network_security_score: 0,
@@ -279,7 +303,7 @@ const calculateCategoryScores = () => {
     security_governance_score: 0,
   }
 
-  // Map category names to score fields
+  // Map backend Category names to score fields
   const categoryMap = {
     'Access Control': 'access_control_score',
     'Data Protection': 'data_protection_score',
@@ -296,18 +320,21 @@ const calculateCategoryScores = () => {
     if (!scoreField) return
 
     const categoryQuestions = category.questions
-    const categoryScores = categoryQuestions
-      .map((q) => scores.value[q.id] || 0)
+    const questionScores = categoryQuestions
+      .map((q) => {
+        const response = responses.value[q.id]
+        return response?.score || 0
+      })
       .filter((s) => s > 0)
 
-    if (categoryScores.length > 0) {
-      scores[scoreField] = Math.round(
-        categoryScores.reduce((sum, s) => sum + s, 0) / categoryScores.length,
+    if (questionScores.length > 0) {
+      categoryResults[scoreField] = Math.round(
+        questionScores.reduce((sum, s) => sum + s, 0) / questionScores.length,
       )
     }
   })
 
-  return scores
+  return categoryResults
 }
 
 const saveAndComplete = async () => {
@@ -327,21 +354,61 @@ const saveAndComplete = async () => {
   }
 }
 
+// Initialize response objects for all questions
+const initializeResponses = () => {
+  if (!questionnaire.value) return
+
+  questionnaire.value.categories.forEach((category) => {
+    category.questions.forEach((question) => {
+      if (!responses.value[question.id]) {
+        responses.value[question.id] = {
+          response: null,
+          score: 0,
+          notes: '',
+        }
+      }
+    })
+  })
+}
+
 onMounted(async () => {
   // Fetch assessment details
   await assessmentStore.fetchAssessment(route.params.id)
 
-  // Fetch questionnaire
-  questionnaire.value = await assessmentStore.fetchQuestionnaire()
+  // Fetch questionnaire with template if provided
+  const templateId = route.query.template_id
+  questionnaire.value = await assessmentStore.fetchQuestionnaire(templateId)
+
+  // Initialize response objects for all questions
+  initializeResponses()
 
   // Load existing responses if any
   if (currentAssessment.value?.responses) {
-    responses.value = { ...currentAssessment.value.responses }
+    // Merge existing responses with initialized structure
+    Object.keys(currentAssessment.value.responses).forEach((questionId) => {
+      const existingResponse = currentAssessment.value.responses[questionId]
+
+      // Handle both old flat structure and new structured format
+      if (
+        typeof existingResponse === 'object' &&
+        existingResponse !== null &&
+        'response' in existingResponse
+      ) {
+        // New structure: { response, score, notes }
+        responses.value[questionId] = { ...existingResponse }
+      } else {
+        // Old flat structure: just the response value
+        if (responses.value[questionId]) {
+          responses.value[questionId].response = existingResponse
+        }
+      }
+    })
   }
 })
 </script>
 
 <style scoped>
+/* Reuse all styles from the original questionnaire view */
 .questionnaire-page {
   min-height: calc(100vh - 72px);
   padding: 40px 0;
@@ -414,6 +481,35 @@ onMounted(async () => {
   background: #3b82f6;
   border-radius: 6px;
   transition: width 0.3s ease;
+}
+
+.score-preview {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #4b5563;
+}
+
+.score-preview span {
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.score-preview span.excellent {
+  color: #059669;
+  background: #d1fae5;
+}
+.score-preview span.good {
+  color: #2563eb;
+  background: #dbeafe;
+}
+.score-preview span.fair {
+  color: #d97706;
+  background: #fef3c7;
+}
+.score-preview span.poor {
+  color: #dc2626;
+  background: #fee2e2;
 }
 
 /* Category Tabs */
@@ -630,6 +726,28 @@ onMounted(async () => {
 /* Notes Input */
 .notes-input {
   margin-top: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* Category Navigation */

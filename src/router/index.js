@@ -77,6 +77,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/incidents',
+      name: 'Incidents',
+      component: () => import('../views/IncidentsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/incidents/trends',
       name: 'IncidentTrends',
       component: () => import('../views/IncidentDashboardView.vue'),
@@ -104,6 +110,36 @@ const router = createRouter({
       path: '/assessments/:id/questionnaire',
       name: 'AssessmentQuestionnaire',
       component: () => import('../views/AssessmentQuestionnaireView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/assessments/:id/compare',
+      name: 'AssessmentComparison',
+      component: () => import('../views/AssessmentComparisonView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/assessments/summary',
+      name: 'AssessmentSummary',
+      component: () => import('../views/AssessmentSummaryView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/assessments/questions',
+      name: 'QuestionManagement',
+      component: () => import('../views/QuestionManagementView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/assessments/templates',
+      name: 'TemplateManagement',
+      component: () => import('../views/TemplateManagementView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/assessments/templates/:id',
+      name: 'TemplateDetail',
+      component: () => import('../views/TemplateDetailView.vue'),
       meta: { requiresAuth: true },
     },
     {

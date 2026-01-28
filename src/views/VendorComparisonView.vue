@@ -2,124 +2,137 @@
   <div class="comparison-page">
     <NavBar />
     <main class="main-content custom-scrollbar">
-      <div class="container py-12">
+      <div class="container">
         <!-- Header Section -->
-        <header class="executive-header mb-12 animate-in">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="header-icon-bg primary shadow-glow"><Scale /></div>
-            <span class="header-tag">Strategic Analysis</span>
+        <header class="page-header">
+          <div class="header-top">
+            <div class="header-badge-wrapper">
+              <div class="header-icon-bg">
+                <Scale class="icon-sm" />
+              </div>
+              <span class="header-badge">Strategic Analysis</span>
+            </div>
           </div>
-          <div class="flex justify-between items-end">
-            <div>
-              <h1 class="text-4xl font-black tracking-tight text-slate-900">
-                Entity <span class="text-primary">Matrix</span> Comparison
+          <div class="header-content">
+            <div class="header-text">
+              <h1 class="page-title">
+                Entity <span class="title-accent">Matrix</span> Comparison
               </h1>
-              <p class="text-slate-500 font-medium max-w-2xl mt-2 text-lg">
+              <p class="page-subtitle">
                 High-fidelity side-by-side audit of risk telemetry, compliance posture, and
                 contractual exposure.
               </p>
             </div>
             <div class="header-actions">
-              <router-link to="/vendors" class="btn-executive">
-                <ArrowLeft class="icon-sm" /> Return to Ecosystem
+              <router-link to="/vendors" class="btn btn-secondary">
+                <ArrowLeft class="icon-sm" />
+                <span>Return to Ecosystem</span>
               </router-link>
             </div>
           </div>
         </header>
 
         <!-- Selection Shell -->
-        <section class="selection-shell card-premium p-8 mb-12 animate-in" style="--delay: 0.1s">
-          <div class="flex justify-between items-center mb-8">
-            <div>
-              <h3 class="text-xl font-black text-slate-800">Resource Selection</h3>
-              <p class="text-sm text-slate-400 font-bold uppercase tracking-wider">
-                Select up to 5 entities for matrix parsing
-              </p>
+        <section class="selection-section">
+          <div class="selection-card">
+            <div class="selection-header">
+              <div class="selection-title-group">
+                <h3 class="selection-title">Resource Selection</h3>
+                <p class="selection-subtitle">
+                  Select up to 5 entities for matrix parsing
+                </p>
+              </div>
+              <div class="selection-counter" :class="{ ready: selectedIds.length >= 2 }">
+                <span class="counter-number">{{ selectedIds.length }}</span>
+                <span class="counter-divider">/</span>
+                <span class="counter-total">5</span>
+                <span class="counter-label">Selected</span>
+              </div>
             </div>
-            <div class="selection-counter" :class="{ ready: selectedIds.length >= 2 }">
-              <span class="count-num">{{ selectedIds.length }}</span>
-              <span class="count-txt">/ 5 Selected</span>
-            </div>
-          </div>
 
-          <div
-            v-if="vendorStore.loading && vendorStore.vendors.length === 0"
-            class="flex justify-center py-12"
-          >
-            <LoadingSpinner />
-          </div>
-
-          <div v-else class="selection-matrix">
             <div
-              v-for="vendor in vendorStore.vendors"
-              :key="vendor.id"
-              @click="toggleSelection(vendor.id)"
-              class="matrix-selector-card"
-              :class="{ selected: selectedIds.includes(vendor.id) }"
+              v-if="vendorStore.loading && vendorStore.vendors.length === 0"
+              class="loading-state"
             >
-              <div class="selector-check">
-                <Check v-if="selectedIds.includes(vendor.id)" class="icon-xs" />
-              </div>
-              <div class="selector-body">
-                <span class="s-vendor-name">{{ vendor.name }}</span>
-                <span class="s-vendor-tag">{{ vendor.industry }}</span>
-              </div>
-              <div class="selector-risk-pill" :class="getRiskClass(vendor.overall_risk_score)">
-                {{ (vendor.overall_risk_score || 0).toFixed(2) }}
+              <LoadingSpinner />
+            </div>
+
+            <div v-else class="vendor-grid">
+              <div
+                v-for="vendor in vendorStore.vendors"
+                :key="vendor.id"
+                @click="toggleSelection(vendor.id)"
+                class="vendor-selector"
+                :class="{ selected: selectedIds.includes(vendor.id) }"
+              >
+                <div class="selector-checkbox">
+                  <Check v-if="selectedIds.includes(vendor.id)" class="check-icon" />
+                </div>
+                <div class="vendor-info">
+                  <div class="vendor-avatar">{{ vendor.name.charAt(0) }}</div>
+                  <div class="vendor-details">
+                    <span class="vendor-name">{{ vendor.name }}</span>
+                    <span class="vendor-industry">{{ vendor.industry }}</span>
+                  </div>
+                </div>
+                <div class="risk-indicator" :class="getRiskClass(vendor.overall_risk_score)">
+                  {{ (vendor.overall_risk_score || 0).toFixed(1) }}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="mt-10 flex justify-center">
-            <button
-              @click="runComparison"
-              class="btn-primary-executive lg shadow-glow"
-              :disabled="selectedIds.length < 2 || loading"
-            >
-              <Activity v-if="!loading" class="icon-sm" />
-              <div v-else class="spinner-mini"></div>
-              {{ loading ? 'Parsing Ecosystem Telemetry...' : 'Generate Matrix Audit' }}
-            </button>
+            <div class="selection-actions">
+              <button
+                @click="runComparison"
+                class="btn btn-primary btn-xl"
+                :disabled="selectedIds.length < 2 || loading"
+              >
+                <Activity v-if="!loading" class="icon-sm" />
+                <div v-else class="spinner"></div>
+                <span>{{ loading ? 'Parsing Ecosystem Telemetry...' : 'Generate Matrix Audit' }}</span>
+              </button>
+            </div>
           </div>
         </section>
 
         <!-- Comparison Results -->
-        <div v-if="results" class="results-anchor animate-in" style="--delay: 0.2s">
-          <div class="card-premium overflow-hidden border-primary-soft mb-12">
-            <div class="overflow-x-auto">
-              <table class="executive-matrix-table">
+        <div v-if="results" class="results-section">
+          <!-- Matrix Table -->
+          <div class="matrix-card">
+            <div class="matrix-overflow">
+              <table class="matrix-table">
                 <thead>
                   <tr>
-                    <th class="matrix-head-label">Audit Vector</th>
+                    <th class="matrix-header-label">Audit Vector</th>
                     <th
                       v-for="vendor in results.vendors"
                       :key="vendor.id"
-                      class="matrix-head-vendor"
+                      class="matrix-header-vendor"
                     >
-                      <div class="vendor-id-card">
-                        <div class="v-avatar">{{ vendor.name.charAt(0) }}</div>
-                        <span class="v-name">{{ vendor.name }}</span>
+                      <div class="vendor-header">
+                        <div class="vendor-avatar-header">{{ vendor.name.charAt(0) }}</div>
+                        <span class="vendor-name-header">{{ vendor.name }}</span>
                       </div>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr class="row-highlight">
-                    <td class="vector-name">Overall Risk Score</td>
-                    <td v-for="vId in selectedIds" :key="vId" class="text-center">
+                  <tr class="row-primary">
+                    <td class="vector-label">Overall Risk Score</td>
+                    <td v-for="vId in selectedIds" :key="vId" class="vector-value">
                       <div
-                        class="matrix-score-hero"
+                        class="score-display"
                         :class="getRiskClass(results.comparison_metrics[vId].overall_risk_score)"
                       >
-                        {{ results.comparison_metrics[vId].overall_risk_score.toFixed(3) }}
+                        {{ results.comparison_metrics[vId].overall_risk_score.toFixed(2) }}
                       </div>
                     </td>
                   </tr>
                   <tr>
-                    <td class="vector-name">Risk Classification</td>
-                    <td v-for="vId in selectedIds" :key="vId" class="text-center">
+                    <td class="vector-label">Risk Classification</td>
+                    <td v-for="vId in selectedIds" :key="vId" class="vector-value">
                       <span
-                        class="classification-tag"
+                        class="classification-badge"
                         :class="getRiskClass(results.comparison_metrics[vId].overall_risk_score)"
                       >
                         {{ results.comparison_metrics[vId].risk_level }}
@@ -127,15 +140,15 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="vector-name">Security Posture</td>
-                    <td v-for="vId in selectedIds" :key="vId" class="text-center">
-                      <div class="posture-meter">
-                        <span class="meter-val"
+                    <td class="vector-label">Security Posture</td>
+                    <td v-for="vId in selectedIds" :key="vId" class="vector-value">
+                      <div class="progress-display">
+                        <span class="progress-value"
                           >{{ results.comparison_metrics[vId].security_posture_score }}%</span
                         >
-                        <div class="meter-track">
+                        <div class="progress-bar">
                           <div
-                            class="meter-fill"
+                            class="progress-fill"
                             :style="{
                               width: results.comparison_metrics[vId].security_posture_score + '%',
                             }"
@@ -145,12 +158,12 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="vector-name">Incident Volume</td>
-                    <td v-for="vId in selectedIds" :key="vId" class="text-center">
+                    <td class="vector-label">Incident Volume</td>
+                    <td v-for="vId in selectedIds" :key="vId" class="vector-value">
                       <span
-                        class="volume-num"
+                        class="incident-count"
                         :class="{
-                          'text-red-500': results.comparison_metrics[vId].incident_count > 0,
+                          'has-incidents': results.comparison_metrics[vId].incident_count > 0,
                         }"
                       >
                         {{ results.comparison_metrics[vId].incident_count }}
@@ -158,24 +171,22 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="vector-name">Trust Certificates</td>
-                    <td v-for="vId in selectedIds" :key="vId" class="text-center">
-                      <div class="cert-stack">
-                        <ShieldCheck class="icon-xs text-green-500" />
-                        <span class="cert-count"
+                    <td class="vector-label">Trust Certificates</td>
+                    <td v-for="vId in selectedIds" :key="vId" class="vector-value">
+                      <div class="cert-display">
+                        <ShieldCheck class="cert-icon" />
+                        <span class="cert-label"
                           >{{ results.comparison_metrics[vId].certification_count }} Active</span
                         >
                       </div>
                     </td>
                   </tr>
                   <tr>
-                    <td class="vector-name">Fiscal Exposure (Annual)</td>
-                    <td
-                      v-for="vId in selectedIds"
-                      :key="vId"
-                      class="text-center font-mono font-bold text-slate-700"
-                    >
-                      ${{ formatNumber(results.comparison_metrics[vId].contract_value) }}
+                    <td class="vector-label">Fiscal Exposure (Annual)</td>
+                    <td v-for="vId in selectedIds" :key="vId" class="vector-value">
+                      <span class="fiscal-value">
+                        ${{ formatNumber(results.comparison_metrics[vId].contract_value) }}
+                      </span>
                     </td>
                   </tr>
                 </tbody>
@@ -183,49 +194,57 @@
             </div>
           </div>
 
-          <!-- Analysis Insights -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="card-premium p-8 border-l-4 border-l-blue-500">
-              <div class="flex items-center gap-3 mb-6">
-                <div class="insight-icon-shell"><Lightbulb /></div>
-                <h3 class="text-xl font-black text-slate-800">Internal Observations</h3>
+          <!-- Analysis Grid -->
+          <div class="analysis-grid">
+            <!-- Insights Card -->
+            <div class="insight-card">
+              <div class="insight-header">
+                <div class="insight-icon-wrapper">
+                  <Lightbulb class="insight-icon" />
+                </div>
+                <h3 class="insight-title">Internal Observations</h3>
               </div>
-              <ul class="insight-bullet-list">
-                <li v-for="(rec, index) in results.recommendations" :key="index">
-                  <div class="bullet-dot"></div>
-                  <p>{{ rec }}</p>
-                </li>
-                <li
-                  v-if="results.recommendations.length === 0"
-                  class="text-slate-400 font-medium italic"
-                >
-                  No significant anomalies or strategic deviations detected.
-                </li>
-              </ul>
+              <div class="insight-body">
+                <ul class="insight-list">
+                  <li v-for="(rec, index) in results.recommendations" :key="index" class="insight-item">
+                    <div class="insight-bullet"></div>
+                    <p class="insight-text">{{ rec }}</p>
+                  </li>
+                  <li
+                    v-if="results.recommendations.length === 0"
+                    class="insight-item empty"
+                  >
+                    <p class="insight-text empty">No significant anomalies or strategic deviations detected.</p>
+                  </li>
+                </ul>
+              </div>
             </div>
 
-            <div class="card-premium p-8">
-              <div class="flex items-center gap-3 mb-8">
-                <div class="insight-icon-shell"><BarChartHorizontal /></div>
-                <h3 class="text-xl font-black text-slate-800">Portfolio Distribution</h3>
+            <!-- Distribution Card -->
+            <div class="distribution-card">
+              <div class="distribution-header">
+                <div class="distribution-icon-wrapper">
+                  <BarChartHorizontal class="distribution-icon" />
+                </div>
+                <h3 class="distribution-title">Portfolio Distribution</h3>
               </div>
-              <div class="distribution-stack">
+              <div class="distribution-body">
                 <div
                   v-for="level in ['critical', 'high', 'medium', 'low']"
                   :key="level"
-                  class="dist-row-premium"
-                  :class="{ 'opacity-30 ghosted': (results.risk_distribution[level] || 0) === 0 }"
+                  class="distribution-row"
+                  :class="{ 'is-empty': (results.risk_distribution[level] || 0) === 0 }"
                 >
-                  <div class="dist-info-block">
-                    <span class="dist-label-p capitalize">{{ level }} Risk</span>
-                    <div class="dist-badge-minimal" :class="level">
-                      {{ results.risk_distribution[level] || 0 }}
-                      <span class="text-[10px] opacity-70">Entities</span>
+                  <div class="distribution-info">
+                    <span class="distribution-label">{{ level }} Risk</span>
+                    <div class="distribution-badge" :class="level">
+                      <span class="badge-count">{{ results.risk_distribution[level] || 0 }}</span>
+                      <span class="badge-text">Entities</span>
                     </div>
                   </div>
-                  <div class="dist-track-premium">
+                  <div class="distribution-track">
                     <div
-                      class="dist-fill-premium"
+                      class="distribution-fill"
                       :class="level"
                       :style="{
                         width: `${((results.risk_distribution[level] || 0) / selectedIds.length) * 100}%`,
@@ -233,7 +252,7 @@
                     ></div>
                     <div
                       v-if="(results.risk_distribution[level] || 0) === 0"
-                      class="dist-zero-hint"
+                      class="empty-indicator"
                     >
                       No vectors detected
                     </div>
@@ -307,451 +326,877 @@ const formatNumber = (num) => {
 </script>
 
 <style scoped>
+/* Base Layout */
 .comparison-page {
   min-height: 100vh;
-  background: #fdfdfd;
+  background: linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%);
   display: flex;
   flex-direction: column;
 }
+
 .main-content {
   flex: 1;
 }
 
-.executive-header h1 {
-  letter-spacing: -0.04em;
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 100px;
 }
-.header-tag {
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: var(--primary);
-  letter-spacing: 0.2em;
-  border: 1px solid var(--primary-soft);
-  padding: 4px 10px;
-  border-radius: 20px;
+
+/* Page Header */
+.page-header {
+  padding: 48px 0 40px;
+  animation: fadeIn 0.5s ease-out;
 }
+
+.header-top {
+  margin-bottom: 20px;
+}
+
+.header-badge-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .header-icon-bg {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
   background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary);
-  border: 1px solid #f1f5f9;
-}
-.shadow-glow {
-  box-shadow: 0 4px 20px -5px var(--primary-soft);
-}
-
-.btn-executive {
-  padding: 12px 24px;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #475569;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: 0.2s;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-}
-.btn-executive:hover {
-  background: #f8fafc;
-  transform: translateY(-2px);
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.card-premium {
-  background: white;
-  border-radius: 32px;
-  border: 1px solid #f1f5f9;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-/* Selection Counter */
-.selection-counter {
-  padding: 10px 20px;
-  border-radius: 50px;
-  background: #f1f5f9;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: 0.3s;
-}
-.selection-counter.ready {
-  background: #eff6ff;
-  color: #3b82f6;
-}
-.count-num {
-  font-size: 20px;
-  font-weight: 950;
-}
-.count-txt {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.6;
-}
-
-/* Matrix Selector */
-.selection-matrix {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-.matrix-selector-card {
-  padding: 20px;
-  border: 2px solid #f1f5f9;
-  border-radius: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: white;
-}
-.matrix-selector-card:hover {
-  transform: translateY(-4px);
-  border-color: #e2e8f0;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-}
-.matrix-selector-card.selected {
-  border-color: var(--primary);
-  background: #fcfdfe;
-  box-shadow: 0 0 0 4px var(--primary-soft);
-}
-
-.selector-check {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
   border: 2px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: 0.2s;
-}
-.selected .selector-check {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: white;
+  color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
-.s-vendor-name {
-  font-weight: 800;
-  font-size: 15px;
-  display: block;
-  color: #1e293b;
+.icon-sm {
+  width: 20px;
+  height: 20px;
 }
-.s-vendor-tag {
-  font-size: 10px;
+
+.header-badge {
+  font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
-  color: #94a3b8;
-  letter-spacing: 0.05em;
+  color: #3b82f6;
+  letter-spacing: 0.1em;
+  padding: 6px 14px;
+  border-radius: 12px;
+  border: 2px solid #dbeafe;
+  background: #eff6ff;
 }
 
-.selector-risk-pill {
-  margin-left: auto;
-  padding: 4px 10px;
-  border-radius: 10px;
-  font-size: 12px;
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.page-title {
+  font-size: 48px;
   font-weight: 900;
+  color: #0f172a;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px 0;
 }
 
-.btn-primary-executive {
-  padding: 18px 40px;
-  background: var(--primary);
-  color: white;
+.title-accent {
+  color: #3b82f6;
+}
+
+.page-subtitle {
+  font-size: 17px;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.6;
+  max-width: 700px;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
   border: none;
-  border-radius: 18px;
+  white-space: nowrap;
+}
+
+.btn-secondary {
+  background: white;
+  color: #475569;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-xl {
+  padding: 18px 40px;
   font-size: 16px;
+  border-radius: 16px;
+}
+
+/* Selection Section */
+.selection-section {
+  margin-bottom: 56px;
+  animation: fadeIn 0.6s ease-out 0.1s both;
+}
+
+.selection-card {
+  background: white;
+  border-radius: 32px;
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.selection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32px 40px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.selection-title-group {
+  flex: 1;
+}
+
+.selection-title {
+  font-size: 24px;
   font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.selection-subtitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.selection-counter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 16px;
+  background: #f1f5f9;
+  transition: all 0.3s;
+}
+
+.selection-counter.ready {
+  background: #dbeafe;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.counter-number {
+  font-size: 28px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.selection-counter.ready .counter-number {
+  color: #2563eb;
+}
+
+.counter-divider {
+  font-size: 20px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.counter-total {
+  font-size: 20px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.counter-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  margin-left: 4px;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 80px 40px;
+}
+
+/* Vendor Grid */
+.vendor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 40px;
+}
+
+.vendor-selector {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border: 2px solid #f1f5f9;
+  border-radius: 20px;
+  background: #fafbfc;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vendor-selector:hover {
+  transform: translateY(-4px);
+  border-color: #e2e8f0;
+  background: white;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.vendor-selector.selected {
+  border-color: #3b82f6;
+  background: #f8fbff;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.selector-checkbox {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  background: white;
+}
+
+.vendor-selector.selected .selector-checkbox {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.check-icon {
+  width: 16px;
+  height: 16px;
+  color: white;
+  stroke-width: 3px;
+}
+
+.vendor-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.btn-primary-executive:hover:not(:disabled) {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-}
-.btn-primary-executive:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  flex: 1;
 }
 
-/* Matrix Table */
-.executive-matrix-table {
+.vendor-avatar {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.vendor-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.vendor-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vendor-industry {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.risk-indicator {
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.risk-indicator.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.risk-indicator.high {
+  background: #fed7aa;
+  color: #9a3412;
+}
+.risk-indicator.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+.risk-indicator.low {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.selection-actions {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Results Section */
+.results-section {
+  animation: fadeIn 0.6s ease-out 0.2s both;
+}
+
+/* Matrix Card */
+.matrix-card {
+  background: white;
+  border-radius: 32px;
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
+  margin-bottom: 56px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.matrix-overflow {
+  overflow-x: auto;
+}
+
+.matrix-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
-.matrix-head-label {
-  padding: 32px;
+
+.matrix-header-label {
+  padding: 32px 40px;
   background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 2px solid #e2e8f0;
+  border-right: 2px solid #e2e8f0;
   text-align: left;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
   text-transform: uppercase;
   color: #64748b;
-  letter-spacing: 0.1em;
-  width: 260px;
+  letter-spacing: 0.08em;
+  min-width: 280px;
   position: sticky;
   left: 0;
   z-index: 10;
-  border-right: 1px solid #e2e8f0;
-}
-.matrix-head-vendor {
-  padding: 32px;
-  border-bottom: 1px solid #e2e8f0;
-  background: white;
-  min-width: 220px;
 }
 
-.vendor-id-card {
+.matrix-header-vendor {
+  padding: 32px 40px;
+  border-bottom: 2px solid #e2e8f0;
+  background: white;
+  min-width: 240px;
+}
+
+.vendor-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
-.v-avatar {
-  width: 44px;
-  height: 44px;
+
+.vendor-avatar-header {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: #eff6ff;
-  color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #2563eb;
+  border: 3px solid #dbeafe;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: 950;
-  border: 2px solid #dbeafe;
-}
-.v-name {
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 900;
-  color: #0f172a;
 }
 
-.vector-name {
-  padding: 24px 32px;
-  font-size: 14px;
+.vendor-name-header {
+  font-size: 17px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.vector-label {
+  padding: 28px 40px;
+  font-size: 15px;
   font-weight: 800;
   color: #475569;
   position: sticky;
   left: 0;
-  background: #fdfdfd;
+  background: white;
   z-index: 5;
-  border-right: 1px solid #f1f5f9;
+  border-right: 2px solid #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
 }
-.executive-matrix-table td {
-  padding: 24px;
+
+.vector-value {
+  padding: 28px 40px;
+  text-align: center;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
-.row-highlight {
+
+.row-primary {
   background: #f8fafc;
 }
 
-.matrix-score-hero {
-  font-size: 20px;
-  font-weight: 950;
-  padding: 10px 20px;
-  border-radius: 12px;
-  display: inline-block;
-}
-.classification-tag {
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-  padding: 4px 12px;
-  border-radius: 50px;
+.row-primary .vector-label {
+  background: #f8fafc;
 }
 
-.posture-meter {
+.score-display {
+  font-size: 24px;
+  font-weight: 900;
+  padding: 12px 24px;
+  border-radius: 14px;
+  display: inline-block;
+  letter-spacing: -0.01em;
+}
+
+.score-display.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.score-display.high {
+  background: #fed7aa;
+  color: #9a3412;
+}
+.score-display.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+.score-display.low {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.classification-badge {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 8px 18px;
+  border-radius: 12px;
+  letter-spacing: 0.05em;
+}
+
+.classification-badge.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.classification-badge.high {
+  background: #fed7aa;
+  color: #9a3412;
+}
+.classification-badge.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+.classification-badge.low {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.progress-display {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 140px;
+  gap: 10px;
+  width: 160px;
   margin: 0 auto;
 }
-.meter-val {
-  font-size: 13px;
+
+.progress-value {
+  font-size: 15px;
   font-weight: 800;
   color: #1e293b;
 }
-.meter-track {
-  height: 6px;
+
+.progress-bar {
+  height: 8px;
   background: #f1f5f9;
   border-radius: 10px;
   overflow: hidden;
 }
-.meter-fill {
+
+.progress-fill {
   height: 100%;
-  background: #3b82f6;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
   border-radius: 10px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.volume-num {
-  font-size: 24px;
-  font-weight: 950;
+.incident-count {
+  font-size: 28px;
+  font-weight: 900;
+  color: #64748b;
 }
-.cert-stack {
+
+.incident-count.has-incidents {
+  color: #ef4444;
+}
+
+.cert-display {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 800;
+  gap: 10px;
 }
 
-/* Insights */
-.insight-icon-shell {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+.cert-icon {
+  width: 18px;
+  height: 18px;
+  color: #10b981;
+}
+
+.cert-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.fiscal-value {
+  font-size: 16px;
+  font-weight: 900;
+  color: #0f172a;
+  font-feature-settings: 'tnum';
+}
+
+/* Analysis Grid */
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+}
+
+/* Insight Card */
+.insight-card {
+  background: white;
+  border-radius: 32px;
+  border: 2px solid #e2e8f0;
+  border-left: 5px solid #3b82f6;
+  overflow: hidden;
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 40px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.insight-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
   background: #eff6ff;
   color: #3b82f6;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
-.insight-bullet-list {
+
+.insight-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.insight-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.insight-body {
+  padding: 40px;
+}
+
+.insight-list {
   list-style: none;
   padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
-.insight-bullet-list li {
+
+.insight-item {
   display: flex;
   gap: 16px;
   align-items: flex-start;
-  margin-bottom: 16px;
 }
-.bullet-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
+
+.insight-item.empty {
+  justify-content: center;
+  padding: 20px;
+}
+
+.insight-bullet {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
   background: #3b82f6;
   margin-top: 6px;
   flex-shrink: 0;
 }
-.insight-bullet-list p {
+
+.insight-text {
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.7;
   font-weight: 500;
   color: #475569;
+  margin: 0;
 }
 
-/* Portfolio Distribution Premium */
-.distribution-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-.dist-row-premium {
-  transition: 0.3s;
-}
-.dist-row-premium.ghosted {
-  filter: grayscale(1);
+.insight-text.empty {
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
 }
 
-.dist-info-block {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 10px;
+/* Distribution Card */
+.distribution-card {
+  background: white;
+  border-radius: 32px;
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
 }
-.dist-label-p {
-  font-size: 13px;
-  font-weight: 800;
-  color: #475569;
-  letter-spacing: -0.01em;
-}
-.dist-badge-minimal {
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 900;
+
+.distribution-header {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 14px;
+  padding: 32px 40px;
+  border-bottom: 2px solid #f1f5f9;
 }
 
-.dist-track-premium {
-  height: 12px;
+.distribution-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: #f0fdf4;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.distribution-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.distribution-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.distribution-body {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.distribution-row {
+  transition: all 0.3s;
+}
+
+.distribution-row.is-empty {
+  opacity: 0.4;
+}
+
+.distribution-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.distribution-label {
+  font-size: 15px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: capitalize;
+  letter-spacing: -0.01em;
+}
+
+.distribution-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-weight: 900;
+}
+
+.badge-count {
+  font-size: 15px;
+}
+
+.badge-text {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.distribution-badge.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.distribution-badge.high {
+  background: #fed7aa;
+  color: #9a3412;
+}
+.distribution-badge.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+.distribution-badge.low {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.distribution-track {
+  height: 14px;
   background: #f1f5f9;
-  border-radius: 20px;
+  border-radius: 10px;
   position: relative;
   overflow: hidden;
 }
-.dist-fill-premium {
+
+.distribution-fill {
   height: 100%;
-  border-radius: 20px;
-  transition: 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 10px;
+  transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.dist-zero-hint {
+
+.distribution-fill.critical {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
+}
+.distribution-fill.high {
+  background: linear-gradient(90deg, #f97316 0%, #ea580c 100%);
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.3);
+}
+.distribution-fill.medium {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
+}
+.distribution-fill.low {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+}
+
+.empty-indicator {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 900;
   color: #cbd5e1;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.critical {
-  color: #dc2626;
-  background: #fee2e2;
-}
-.high {
-  color: #f59e0b;
-  background: #fef3c7;
-}
-.medium {
-  color: #eab308;
-  background: #fef9c3;
-}
-.low {
-  color: #10b981;
-  background: #d1fae5;
-}
-
-.dist-fill-premium.critical {
-  background: #dc2626;
-  box-shadow: 0 0 12px rgba(220, 38, 38, 0.2);
-}
-.dist-fill-premium.high {
-  background: #f59e0b;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
-}
-.dist-fill-premium.medium {
-  background: #eab308;
-  box-shadow: 0 0 12px rgba(234, 179, 8, 0.2);
-}
-.dist-fill-premium.low {
-  background: #10b981;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+  letter-spacing: 0.08em;
 }
 
 /* Animations */
-.animate-in {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-  animation-delay: var(--delay, 0s);
-}
-@keyframes fadeInUp {
+@keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -762,28 +1207,100 @@ const formatNumber = (num) => {
   }
 }
 
-.spinner-mini {
-  width: 18px;
-  height: 18px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
 .custom-scrollbar::-webkit-scrollbar-track {
   background: #f8fafc;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 4px;
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vendor-grid {
+    grid-template-columns: 1fr;
+    padding: 32px 24px;
+  }
+
+  .selection-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px 80px;
+  }
+
+  .page-header {
+    padding: 32px 0 28px;
+  }
+
+  .page-title {
+    font-size: 36px;
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+  }
+
+  .selection-card {
+    border-radius: 24px;
+  }
+
+  .selection-header,
+  .insight-header,
+  .distribution-header {
+    padding: 24px;
+  }
+
+  .insight-body,
+  .distribution-body {
+    padding: 24px;
+  }
+
+  .matrix-header-label,
+  .vector-label {
+    padding: 20px 24px;
+  }
+
+  .matrix-header-vendor,
+  .vector-value {
+    padding: 20px 24px;
+  }
 }
 </style>

@@ -98,7 +98,7 @@
                   </td>
                   <td>
                     <button @click="openEditModal(user)" class="btn btn-secondary btn-sm">
-                      Edit Role
+                      Edit Member
                     </button>
                   </td>
                 </tr>
@@ -111,28 +111,40 @@
 
     <!-- Edit Role Modal -->
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal-content">
+      <div class="modal-content modal-lg">
         <div class="modal-header">
-          <h2>Edit Member Role</h2>
+          <h2>Edit Member</h2>
           <button @click="showModal = false" class="close-btn"><X /></button>
         </div>
         <div class="modal-body" v-if="selectedUser">
-          <p>
-            Update role for
+          <p class="mb-4">
+            Update information for
             <strong>{{ selectedUser.first_name }} {{ selectedUser.last_name }}</strong>
           </p>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input v-model="editForm.first_name" type="text" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input v-model="editForm.last_name" type="text" class="form-input" />
+            </div>
+          </div>
           <div class="form-group mt-4">
-            <label class="form-label">Select Role</label>
-            <select v-model="editRole" class="form-input">
+            <label class="form-label">Role</label>
+            <select v-model="editForm.role" class="form-input">
               <option value="admin">Administrator</option>
               <option value="analyst">Risk Analyst</option>
               <option value="manager">Manager</option>
               <option value="viewer">Viewer</option>
             </select>
           </div>
+
           <div class="modal-actions mt-4">
             <button @click="showModal = false" class="btn btn-secondary">Cancel</button>
-            <button @click="handleUpdateRole" class="btn btn-primary" :disabled="saving">
+            <button @click="handleUpdateMember" class="btn btn-primary" :disabled="saving">
               {{ saving ? 'Updating...' : 'Save Changes' }}
             </button>
           </div>
@@ -154,7 +166,14 @@ const loading = ref(false)
 const saving = ref(false)
 const showModal = ref(false)
 const selectedUser = ref(null)
-const editRole = ref('')
+const editForm = ref({
+  first_name: '',
+  last_name: '',
+  role: '',
+  profile: {
+    role: '',
+  },
+})
 
 const filters = ref({
   search: '',
@@ -189,16 +208,31 @@ const formatRole = (role) => {
 
 const openEditModal = (user) => {
   selectedUser.value = user
-  editRole.value = user.role
+  editForm.value = {
+    first_name: user.first_name || '',
+    last_name: user.last_name || '',
+    role: user.role || '',
+    profile: {
+      role: user.role || '',
+    },
+  }
   showModal.value = true
 }
 
-const handleUpdateRole = async () => {
+const handleUpdateMember = async () => {
   try {
     saving.value = true
-    await coreStore.updateUserProfile(selectedUser.value.id, {
-      role: editRole.value,
-    })
+    // Construct simplified payload according to documentation
+    const payload = {
+      first_name: editForm.value.first_name,
+      last_name: editForm.value.last_name,
+      role: editForm.value.role,
+      profile: {
+        role: editForm.value.role,
+      },
+    }
+
+    await coreStore.updateUserProfile(selectedUser.value.id, payload)
     showModal.value = false
     await fetchUsers()
   } catch (error) {
@@ -403,6 +437,23 @@ onMounted(fetchUsers)
   width: 100%;
   max-width: 450px;
   padding: 32px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-content.modal-lg {
+  max-width: 600px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 0;
 }
 
 .modal-header {

@@ -22,7 +22,7 @@
             <Scale class="nav-icon" />
             <span>Comparison</span>
           </router-link>
-          <router-link to="/incidents/trends" class="nav-link" title="Incidents">
+          <router-link to="/incidents" class="nav-link" title="Incidents">
             <Activity class="nav-icon" />
             <span>Incidents</span>
           </router-link>
@@ -30,10 +30,38 @@
             <Zap class="nav-icon" />
             <span>Sims</span>
           </router-link>
-          <router-link to="/assessments" class="nav-link" title="Assessments">
-            <ClipboardList class="nav-icon" />
-            <span>Audits</span>
-          </router-link>
+          <!-- Audits Dropdown -->
+          <div class="nav-dropdown-wrapper">
+            <router-link to="/assessments" class="nav-link" title="Assessments">
+              <ClipboardList class="nav-icon" />
+              <span>Audits</span>
+              <ChevronDown v-if="isAdmin" class="chevron-icon" />
+            </router-link>
+
+            <div v-if="isAdmin" class="dropdown-menu card glass">
+              <router-link to="/assessments/summary" class="dropdown-item">
+                <PieChart class="dropdown-icon" />
+                <div class="item-text">
+                  <span class="item-title">Summary</span>
+                  <span class="item-desc">Portfolio analytics & trends</span>
+                </div>
+              </router-link>
+              <router-link to="/assessments/questions" class="dropdown-item">
+                <Archive class="dropdown-icon" />
+                <div class="item-text">
+                  <span class="item-title">Question Library</span>
+                  <span class="item-desc">Manage master questionnaire</span>
+                </div>
+              </router-link>
+              <router-link to="/assessments/templates" class="dropdown-item">
+                <Layout class="dropdown-icon" />
+                <div class="item-text">
+                  <span class="item-title">Frameworks</span>
+                  <span class="item-desc">Assessment audit templates</span>
+                </div>
+              </router-link>
+            </div>
+          </div>
         </div>
 
         <div class="navbar-user" v-if="authStore.isLoggedIn">
@@ -66,6 +94,10 @@ import {
   LogOut,
   Scale,
   Activity,
+  PieChart,
+  Archive,
+  Layout,
+  ChevronDown,
 } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
@@ -158,6 +190,7 @@ const handleLogout = async () => {
   font-size: 14px;
   font-weight: 600;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .nav-link:hover {
@@ -241,10 +274,91 @@ const handleLogout = async () => {
   height: 16px;
 }
 
+.chevron-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: -2px;
+  opacity: 0.5;
+  transition: transform 0.2s;
+}
+
+.nav-link:hover .chevron-icon {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+/* Dropdown Menu */
+.nav-dropdown-wrapper {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  width: 280px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1001;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.nav-dropdown-wrapper:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #475569;
+  transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--primary);
+}
+
+.dropdown-icon {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.item-desc {
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
 @media (max-width: 1100px) {
   .nav-link span,
   .brand-text,
-  .user-name-hide {
+  .user-name-hide,
+  .chevron-icon {
     display: none;
   }
   .navbar-brand,

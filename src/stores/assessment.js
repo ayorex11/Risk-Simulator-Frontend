@@ -214,6 +214,24 @@ export const useAssessmentStore = defineStore('assessment', {
       }
     },
 
+    async createQuestion(questionData) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await assessmentService.createQuestion(questionData)
+        this.questions.unshift(response)
+        toast.success('Question created successfully!')
+        return response
+      } catch (error) {
+        const errorMsg = error.response?.data?.error || 'Failed to create question'
+        this.error = errorMsg
+        toast.error(errorMsg)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     async fetchQuestionnaire(templateId = null) {
       this.loading = true
       this.error = null
@@ -240,6 +258,40 @@ export const useAssessmentStore = defineStore('assessment', {
         return response
       } catch (error) {
         const errorMsg = error.response?.data?.error || 'Failed to fetch templates'
+        this.error = errorMsg
+        toast.error(errorMsg)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchTemplate(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await assessmentService.getTemplate(id)
+        return response
+      } catch (error) {
+        const errorMsg = error.response?.data?.error || 'Failed to fetch template'
+        this.error = errorMsg
+        toast.error(errorMsg)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createTemplate(templateData) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await assessmentService.createTemplate(templateData)
+        this.templates.unshift(response)
+        toast.success('Template created successfully!')
+        return response
+      } catch (error) {
+        const errorMsg = error.response?.data?.error || 'Failed to create template'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error
