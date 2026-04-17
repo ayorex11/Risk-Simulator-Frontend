@@ -98,11 +98,7 @@
             <span v-if="errors.password2" class="form-error">{{ errors.password2 }}</span>
           </div>
 
-          <button
-            type="submit"
-            class="btn btn-primary btn-full"
-            :disabled="authStore.loading"
-          >
+          <button type="submit" class="btn btn-primary btn-full" :disabled="authStore.loading">
             <span v-if="authStore.loading" class="spinner"></span>
             {{ authStore.loading ? 'Creating account...' : 'Create Account' }}
           </button>
@@ -134,7 +130,7 @@ const formData = ref({
   last_name: '',
   email: '',
   password: '',
-  password2: ''
+  password2: '',
 })
 
 const errors = ref({})
@@ -166,7 +162,7 @@ const validateForm = () => {
 
   const passwordMatchError = validatePasswordMatch(
     formData.value.password,
-    formData.value.password2
+    formData.value.password2,
   )
   if (passwordMatchError) {
     errors.value.password2 = passwordMatchError

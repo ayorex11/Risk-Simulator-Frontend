@@ -157,7 +157,10 @@
                   Findings & Summary
                 </h3>
                 <button
-                  v-if="currentAssessment.status !== 'approved'"
+                  v-if="
+                    currentAssessment.status === 'draft' ||
+                    currentAssessment.status === 'in_progress'
+                  "
                   @click="showEditFindingsModal = true"
                   class="btn-text"
                 >
@@ -356,8 +359,8 @@
             <button type="button" @click="showUploadModal = false" class="btn btn-secondary">
               Cancel
             </button>
-            <button type="submit" class="btn btn-primary" :disabled="assessmentStore.loading">
-              {{ assessmentStore.loading ? 'Uploading...' : 'Upload' }}
+            <button type="submit" class="btn btn-primary" :disabled="evidenceLoading">
+              {{ evidenceLoading ? 'Uploading...' : 'Upload' }}
             </button>
           </div>
         </form>
@@ -408,8 +411,8 @@
             <button type="button" @click="showEditFindingsModal = false" class="btn btn-secondary">
               Cancel
             </button>
-            <button type="submit" class="btn btn-primary" :disabled="assessmentStore.loading">
-              Save Changes
+            <button type="submit" class="btn btn-primary" :disabled="findingsLoading">
+              {{ findingsLoading ? 'Saving...' : 'Save Changes' }}
             </button>
           </div>
         </form>
@@ -423,6 +426,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAssessmentStore } from '../stores/assessment'
 import { useCoreStore } from '../stores/core'
+import assessmentService from '../services/assessmentService'
 import NavBar from '../components/common/NavBar.vue'
 import LoadingSpinner from '../components/common/LoadingSpinner.vue'
 import {
@@ -437,6 +441,7 @@ import {
   File,
   Trash2,
   TrendingUp,
+  TrendingDown,
   AlertCircle,
   X,
 } from 'lucide-vue-next'
@@ -450,6 +455,8 @@ const showUploadModal = ref(false)
 const showEditFindingsModal = ref(false)
 const evidence = ref([])
 const comparison = ref(null)
+const evidenceLoading = ref(false)
+const findingsLoading = ref(false)
 
 const categoryLabelMap = {
   access_control: 'Access Control',
@@ -478,8 +485,10 @@ const findingsForm = ref({
 
 const currentAssessment = computed(() => assessmentStore.currentAssessment)
 const canApprove = computed(() => ['admin', 'manager'].includes(coreStore.permissions?.role))
-const canUploadEvidence = computed(() =>
-  ['admin', 'manager', 'analyst'].includes(coreStore.permissions?.role),
+const canUploadEvidence = computed(
+  () =>
+    ['admin', 'manager', 'analyst'].includes(coreStore.permissions?.role) &&
+    currentAssessment.value?.status !== 'approved',
 )
 
 const canDeleteEvidence = (item) => {
@@ -522,19 +531,42 @@ const goToComparison = () => {
 const approveAssessment = async () => {
   try {
     await assessmentStore.approveAssessment(route.params.id)
-    await assessmentStore.fetchAssessment(route.params.id)
+    // Re-fetch to get the updated status
+    const assessment = await assessmentStore.fetchAssessment(route.params.id)
+    if (assessment) {
+      syncFindingsForm(assessment)
+    }
   } catch (error) {
     console.error('Failed to approve assessment:', error)
   }
 }
 
 const handleUpdateFindings = async () => {
+  findingsLoading.value = true
   try {
-    await assessmentStore.updateAssessment(route.params.id, findingsForm.value)
+    // Sanitize payload — backend DateField rejects empty string, expects null or valid date
+    const payload = {
+      notes: findingsForm.value.notes,
+      findings: findingsForm.value.findings,
+      recommendations: findingsForm.value.recommendations,
+      requires_followup: findingsForm.value.requires_followup,
+      followup_date: findingsForm.value.followup_date || null,
+    }
+    // If no followup date, clear the requires_followup flag to avoid backend validation error
+    if (!payload.followup_date) {
+      payload.requires_followup = false
+    }
+    await assessmentStore.updateAssessment(route.params.id, payload)
     showEditFindingsModal.value = false
-    await assessmentStore.fetchAssessment(route.params.id)
+    // Re-fetch to get the updated data
+    const assessment = await assessmentStore.fetchAssessment(route.params.id)
+    if (assessment) {
+      syncFindingsForm(assessment)
+    }
   } catch (error) {
     console.error('Failed to update findings:', error)
+  } finally {
+    findingsLoading.value = false
   }
 }
 
@@ -543,9 +575,19 @@ const handleFileChange = (event) => {
 }
 
 const handleUploadEvidence = async () => {
+  evidenceLoading.value = true
   try {
-    await assessmentStore.uploadEvidence(route.params.id, evidenceForm.value)
-    evidence.value = await assessmentStore.fetchEvidence(route.params.id)
+    // Include assessment ID — backend serializer requires it
+    const dataToUpload = { ...evidenceForm.value, assessment: route.params.id }
+    await assessmentStore.uploadEvidence(route.params.id, dataToUpload)
+    // Re-fetch evidence list
+    try {
+      const evidenceData = await assessmentService.getEvidence(route.params.id)
+      evidence.value = Array.isArray(evidenceData) ? evidenceData : evidenceData?.results || []
+    } catch {
+      // Evidence already added to store, use that
+      evidence.value = assessmentStore.evidence || []
+    }
     showUploadModal.value = false
     evidenceForm.value = {
       title: '',
@@ -555,6 +597,8 @@ const handleUploadEvidence = async () => {
     }
   } catch (error) {
     console.error('Failed to upload evidence:', error)
+  } finally {
+    evidenceLoading.value = false
   }
 }
 
@@ -569,26 +613,53 @@ const deleteEvidence = async (evidenceId) => {
   }
 }
 
-onMounted(async () => {
-  const assessment = await assessmentStore.fetchAssessment(route.params.id)
-  evidence.value = await assessmentStore.fetchEvidence(route.params.id)
+const syncFindingsForm = (assessment) => {
+  findingsForm.value = {
+    notes: assessment.notes || '',
+    findings: assessment.findings || '',
+    recommendations: assessment.recommendations || '',
+    requires_followup: assessment.requires_followup || false,
+    followup_date: assessment.followup_date || '',
+  }
+}
 
-  if (assessment) {
-    findingsForm.value = {
-      notes: assessment.notes || '',
-      findings: assessment.findings || '',
-      recommendations: assessment.recommendations || '',
-      requires_followup: assessment.requires_followup || false,
-      followup_date: assessment.followup_date || '',
-    }
+onMounted(async () => {
+  // 1. Fetch the assessment first
+  let assessment = null
+  try {
+    assessment = await assessmentStore.fetchAssessment(route.params.id)
+  } catch (error) {
+    console.error('Failed to fetch assessment:', error)
+    return
   }
 
-  // Try to fetch comparison
+  // 2. Populate findings form immediately after assessment loads
+  if (assessment) {
+    syncFindingsForm(assessment)
+  }
+
+  // 3. Fetch evidence separately — don't let it block the page
   try {
-    comparison.value = await assessmentStore.compareAssessments(route.params.id)
+    const evidenceData = await assessmentService.getEvidence(route.params.id)
+    evidence.value = Array.isArray(evidenceData) ? evidenceData : evidenceData?.results || []
+  } catch (error) {
+    console.error('Failed to fetch evidence:', error)
+    evidence.value = []
+  }
+
+  // 4. Try to fetch comparison (optional) — call service directly to avoid global loading
+  try {
+    const compareData = await assessmentService.compareAssessments(route.params.id)
+    // Backend returns 200 with { message, current } when no previous assessment exists
+    // Only set comparison if we actually got comparison data (has 'trend' field)
+    if (compareData && compareData.trend && compareData.previous) {
+      comparison.value = compareData
+    } else {
+      comparison.value = null
+    }
   } catch {
-    // No previous assessment to compare
-    console.log('No previous assessment for comparison')
+    // API error — no comparison available
+    comparison.value = null
   }
 })
 </script>

@@ -166,23 +166,11 @@ export const useAssessmentStore = defineStore('assessment', {
     },
 
     async compareAssessments(id) {
-      this.loading = true
-      this.error = null
-      try {
-        const response = await assessmentService.compareAssessments(id)
-        return response
-      } catch (error) {
-        const errorMsg = error.response?.data?.error || 'Failed to compare assessments'
-        this.error = errorMsg
-        toast.error(errorMsg)
-        throw error
-      } finally {
-        this.loading = false
-      }
+      const response = await assessmentService.compareAssessments(id)
+      return response
     },
 
     async fetchAssessmentSummary() {
-      this.loading = true
       this.error = null
       try {
         const response = await assessmentService.getAssessmentSummary()
@@ -192,8 +180,6 @@ export const useAssessmentStore = defineStore('assessment', {
         const errorMsg = error.response?.data?.error || 'Failed to fetch summary'
         this.error = errorMsg
         throw error
-      } finally {
-        this.loading = false
       }
     },
 
@@ -344,6 +330,38 @@ export const useAssessmentStore = defineStore('assessment', {
         toast.success('Evidence deleted successfully!')
       } catch (error) {
         const errorMsg = error.response?.data?.error || 'Failed to delete evidence'
+        this.error = errorMsg
+        toast.error(errorMsg)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async addQuestionsToTemplate(templateId, questionIds) {
+      this.loading = true
+      this.error = null
+      try {
+        await assessmentService.addQuestionsToTemplate(templateId, questionIds)
+        toast.success('Questions added to template!')
+      } catch (error) {
+        const errorMsg = error.response?.data?.error || 'Failed to add questions'
+        this.error = errorMsg
+        toast.error(errorMsg)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async removeQuestionFromTemplate(templateId, tqId) {
+      this.loading = true
+      this.error = null
+      try {
+        await assessmentService.removeQuestionFromTemplate(templateId, tqId)
+        toast.success('Question removed from template!')
+      } catch (error) {
+        const errorMsg = error.response?.data?.error || 'Failed to remove question'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error

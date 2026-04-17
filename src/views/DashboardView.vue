@@ -21,7 +21,7 @@
               <Plus class="icon-sm" />
               <span>Initialize Command</span>
             </button>
-            <div v-else class="flex gap-3">
+            <div v-else-if="canManageEntities" class="flex gap-3">
               <router-link to="/vendors/new" class="btn btn-primary">
                 <Plus class="icon-sm" />
                 <span>Add New Entity</span>
@@ -75,6 +75,16 @@
             </div>
           </div>
         </div>
+
+        <!-- Risk Distribution Chart -->
+        <section v-if="orgStats" class="content-card" style="margin-bottom: 28px;">
+          <div class="card-header">
+            <h2 class="card-title">Organization Risk Distribution</h2>
+          </div>
+          <div class="card-body" style="height: 300px; padding: 20px;">
+            <v-chart class="chart" :option="chartOption" autoresize />
+          </div>
+        </section>
 
         <!-- Main Content Grid -->
         <div class="main-grid">
@@ -175,7 +185,7 @@
             <p class="shortcuts-subtitle">Quick access to common operations</p>
           </div>
           <div class="shortcuts-grid">
-            <router-link to="/vendors/new" class="shortcut-card">
+            <router-link v-if="canManageEntities" to="/vendors/new" class="shortcut-card">
               <div class="shortcut-icon">🏢</div>
               <div class="shortcut-content">
                 <span class="shortcut-label">Onboard Entity</span>
@@ -239,14 +249,20 @@ import {
   Plus,
   ShieldCheck,
 } from 'lucide-vue-next'
+import VChart from 'vue-echarts'
+import * as echarts from 'echarts'
 
 const coreStore = useCoreStore()
 const dashboardData = ref(null)
+const orgStats = ref(null)
 const showOrgModal = ref(false)
 const showJoinModal = ref(false)
 
 const currentUser = computed(() => coreStore.currentUser || coreStore.user)
 const hasOrganization = computed(() => coreStore.hasOrganization || !!coreStore.organization)
+const canManageEntities = computed(() =>
+  ['admin', 'analyst', 'manager'].includes(coreStore.permissions?.role),
+)
 
 const stats = computed(() => [
   {
@@ -294,11 +310,44 @@ const loadDashboard = async () => {
       } else if (typeof coreStore.fetchDashboardData === 'function') {
         dashboardData.value = await coreStore.fetchDashboardData()
       }
+      
+      if (typeof coreStore.fetchOrganizationStats === 'function') {
+        orgStats.value = await coreStore.fetchOrganizationStats()
+      }
     } catch (error) {
       console.error('Failed to load dashboard:', error)
     }
   }
 }
+
+const chartOption = computed(() => {
+  if (!orgStats.value?.vendors_by_risk_level) return {}
+  const data = orgStats.value.vendors_by_risk_level
+  
+  return {
+    tooltip: { trigger: 'item' },
+    legend: { top: 'bottom' },
+    series: [
+      {
+        name: 'Vendors by Risk',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        itemStyle: {
+          borderRadius: 10,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        label: { show: true, formatter: '{b}: {c}' },
+        data: [
+          { value: data.low || 0, name: 'Low Risk', itemStyle: { color: '#10b981' } },
+          { value: data.medium || 0, name: 'Medium Risk', itemStyle: { color: '#f59e0b' } },
+          { value: data.high || 0, name: 'High Risk', itemStyle: { color: '#f97316' } },
+          { value: data.critical || 0, name: 'Critical', itemStyle: { color: '#ef4444' } }
+        ]
+      }
+    ]
+  }
+})
 
 const handleOrgCreated = async () => {
   showOrgModal.value = false
@@ -526,7 +575,8 @@ onMounted(async () => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(0.9);
     opacity: 0.3;
   }
@@ -671,7 +721,8 @@ onMounted(async () => {
 }
 
 @keyframes pulseDot {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
   }
   50% {

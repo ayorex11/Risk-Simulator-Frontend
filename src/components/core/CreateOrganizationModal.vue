@@ -81,9 +81,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" @click="$emit('close')" class="btn btn-secondary">
-            Cancel
-          </button>
+          <button type="button" @click="$emit('close')" class="btn btn-secondary">Cancel</button>
           <button type="submit" class="btn btn-primary" :disabled="coreStore.loading">
             <span v-if="coreStore.loading" class="spinner"></span>
             {{ coreStore.loading ? 'Creating...' : 'Create Organization' }}
@@ -107,7 +105,7 @@ const formData = ref({
   industry: '',
   size: '',
   country: '',
-  config: {}
+  config: {},
 })
 
 const errors = ref({})

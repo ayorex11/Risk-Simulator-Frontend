@@ -48,16 +48,10 @@
           </div>
 
           <div class="form-footer">
-            <router-link to="/forgot-password" class="link text-sm">
-              Forgot password?
-            </router-link>
+            <router-link to="/forgot-password" class="link text-sm"> Forgot password? </router-link>
           </div>
 
-          <button
-            type="submit"
-            class="btn btn-primary btn-full"
-            :disabled="authStore.loading"
-          >
+          <button type="submit" class="btn btn-primary btn-full" :disabled="authStore.loading">
             <span v-if="authStore.loading" class="spinner"></span>
             {{ authStore.loading ? 'Signing in...' : 'Sign In' }}
           </button>
@@ -86,12 +80,12 @@ const authStore = useAuthStore()
 
 const formData = ref({
   email: '',
-  password: ''
+  password: '',
 })
 
 const errors = ref({
   email: '',
-  password: ''
+  password: '',
 })
 
 const showPassword = ref(false)

@@ -15,9 +15,7 @@
           </div>
           <div class="header-content">
             <div class="header-text">
-              <h1 class="page-title">
-                Entity <span class="title-accent">Matrix</span> Comparison
-              </h1>
+              <h1 class="page-title">Entity <span class="title-accent">Matrix</span> Comparison</h1>
               <p class="page-subtitle">
                 High-fidelity side-by-side audit of risk telemetry, compliance posture, and
                 contractual exposure.
@@ -38,9 +36,7 @@
             <div class="selection-header">
               <div class="selection-title-group">
                 <h3 class="selection-title">Resource Selection</h3>
-                <p class="selection-subtitle">
-                  Select up to 5 entities for matrix parsing
-                </p>
+                <p class="selection-subtitle">Select up to 5 entities for matrix parsing</p>
               </div>
               <div class="selection-counter" :class="{ ready: selectedIds.length >= 2 }">
                 <span class="counter-number">{{ selectedIds.length }}</span>
@@ -89,7 +85,9 @@
               >
                 <Activity v-if="!loading" class="icon-sm" />
                 <div v-else class="spinner"></div>
-                <span>{{ loading ? 'Parsing Ecosystem Telemetry...' : 'Generate Matrix Audit' }}</span>
+                <span>{{
+                  loading ? 'Parsing Ecosystem Telemetry...' : 'Generate Matrix Audit'
+                }}</span>
               </button>
             </div>
           </div>
@@ -206,15 +204,18 @@
               </div>
               <div class="insight-body">
                 <ul class="insight-list">
-                  <li v-for="(rec, index) in results.recommendations" :key="index" class="insight-item">
+                  <li
+                    v-for="(rec, index) in results.recommendations"
+                    :key="index"
+                    class="insight-item"
+                  >
                     <div class="insight-bullet"></div>
                     <p class="insight-text">{{ rec }}</p>
                   </li>
-                  <li
-                    v-if="results.recommendations.length === 0"
-                    class="insight-item empty"
-                  >
-                    <p class="insight-text empty">No significant anomalies or strategic deviations detected.</p>
+                  <li v-if="results.recommendations.length === 0" class="insight-item empty">
+                    <p class="insight-text empty">
+                      No significant anomalies or strategic deviations detected.
+                    </p>
                   </li>
                 </ul>
               </div>

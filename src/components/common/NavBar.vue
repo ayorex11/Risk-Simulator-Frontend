@@ -14,24 +14,43 @@
             <LayoutDashboard class="nav-icon" />
             <span>Dashboard</span>
           </router-link>
-          <router-link to="/vendors" class="nav-link" title="Vendors">
+          <router-link v-if="hasOrganization" to="/vendors" class="nav-link" title="Vendors">
             <Building class="nav-icon" />
             <span>Vendors</span>
           </router-link>
-          <router-link to="/vendors/compare" class="nav-link" title="Comparison">
+          <router-link
+            v-if="hasOrganization"
+            to="/vendors/compare"
+            class="nav-link"
+            title="Comparison"
+          >
             <Scale class="nav-icon" />
             <span>Comparison</span>
           </router-link>
-          <router-link to="/incidents" class="nav-link" title="Incidents">
+          <router-link v-if="hasOrganization" to="/incidents" class="nav-link" title="Incidents">
             <Activity class="nav-icon" />
             <span>Incidents</span>
           </router-link>
-          <router-link to="/simulations" class="nav-link" title="Simulations">
+          <router-link
+            v-if="hasOrganization"
+            to="/simulations"
+            class="nav-link"
+            title="Simulations"
+          >
             <Zap class="nav-icon" />
             <span>Sims</span>
           </router-link>
+          <router-link
+            v-if="hasOrganization"
+            to="/processes/dependency-map"
+            class="nav-link"
+            title="Dependency Map"
+          >
+            <Network class="nav-icon" />
+            <span>Map</span>
+          </router-link>
           <!-- Audits Dropdown -->
-          <div class="nav-dropdown-wrapper">
+          <div v-if="hasOrganization" class="nav-dropdown-wrapper">
             <router-link to="/assessments" class="nav-link" title="Assessments">
               <ClipboardList class="nav-icon" />
               <span>Audits</span>
@@ -98,6 +117,7 @@ import {
   Archive,
   Layout,
   ChevronDown,
+  Network,
 } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
@@ -105,6 +125,7 @@ const coreStore = useCoreStore()
 const router = useRouter()
 
 const isAdmin = computed(() => ['admin', 'manager'].includes(coreStore.permissions?.role))
+const hasOrganization = computed(() => coreStore.hasOrganization)
 
 const handleLogout = async () => {
   await authStore.logout()

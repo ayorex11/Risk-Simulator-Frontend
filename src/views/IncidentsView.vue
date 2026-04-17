@@ -11,9 +11,7 @@
               <span>Security Operations</span>
             </div>
             <h1 class="page-title">Active Incidents</h1>
-            <p class="page-subtitle">
-              Monitor and manage security events across the ecosystem.
-            </p>
+            <p class="page-subtitle">Monitor and manage security events across the ecosystem.</p>
           </div>
           <div class="header-actions">
             <router-link to="/incidents/trends" class="btn btn-outline">
@@ -79,10 +77,7 @@
       </div>
 
       <!-- Empty State -->
-      <div
-        v-else-if="filteredIncidents.length === 0"
-        class="empty-state"
-      >
+      <div v-else-if="filteredIncidents.length === 0" class="empty-state">
         <div class="empty-illustration">
           <div class="pulse-ring primary"></div>
           <div class="pulse-ring secondary"></div>
@@ -93,34 +88,21 @@
           No active incidents matched your current filters. Your vendor ecosystem appears stable.
         </p>
         <div class="empty-actions">
-          <button @click="resetFilters" class="btn btn-secondary">
-            Clear All Filters
-          </button>
-          <button @click="showReportModal = true" class="btn btn-primary">
-            Log New Incident
-          </button>
+          <button @click="resetFilters" class="btn btn-secondary">Clear All Filters</button>
+          <button @click="showReportModal = true" class="btn btn-primary">Log New Incident</button>
         </div>
       </div>
 
       <!-- Incidents Grid -->
-      <div
-        v-else
-        class="incidents-grid"
-      >
-        <div
-          v-for="incident in filteredIncidents"
-          :key="incident.id"
-          class="incident-card"
-        >
+      <div v-else class="incidents-grid">
+        <div v-for="incident in filteredIncidents" :key="incident.id" class="incident-card">
           <div class="card-edge" :class="incident.severity"></div>
 
           <div class="card-header">
             <span class="severity-badge" :class="incident.severity">
               {{ incident.severity }}
             </span>
-            <span class="incident-id">
-              #{{ incident.id.split('-')[0] }}
-            </span>
+            <span class="incident-id"> #{{ incident.id.split('-')[0] }} </span>
           </div>
 
           <div class="card-body">
@@ -128,10 +110,7 @@
               {{ incident.title }}
             </h3>
 
-            <router-link
-              :to="`/vendors/${incident.vendor}`"
-              class="vendor-link"
-            >
+            <router-link :to="`/vendors/${incident.vendor}`" class="vendor-link">
               <div class="vendor-avatar">{{ incident.vendor_name?.charAt(0) }}</div>
               <span class="vendor-name">{{ incident.vendor_name }}</span>
               <ExternalLink class="link-icon" />
@@ -148,7 +127,9 @@
               </div>
               <div class="stat-item align-right">
                 <span class="stat-label danger">Financial Impact</span>
-                <span class="stat-value impact">${{ formatNumber(incident.financial_impact) }}</span>
+                <span class="stat-value impact"
+                  >${{ formatNumber(incident.financial_impact) }}</span
+                >
               </div>
             </div>
           </div>
@@ -469,7 +450,9 @@ onMounted(async () => {
 
 .search-input:focus {
   border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 0 0 4px rgba(59, 130, 246, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.04);
   outline: none;
 }
 
@@ -607,7 +590,8 @@ onMounted(async () => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(0.95);
     opacity: 0.3;
   }

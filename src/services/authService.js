@@ -58,7 +58,7 @@ export default {
     const response = await api.post('/auth/reset-password/', {
       token,
       new_password: newPassword,
-      new_password2: newPassword2
+      new_password2: newPassword2,
     })
     return response.data
   },
@@ -67,7 +67,7 @@ export default {
   async changePassword(oldPassword, newPassword) {
     const response = await api.post('/auth/change-password/', {
       old_password: oldPassword,
-      new_password: newPassword
+      new_password: newPassword,
     })
     if (response.data.access) {
       localStorage.setItem('access_token', response.data.access)
@@ -92,5 +92,5 @@ export default {
   getCurrentUser() {
     const userStr = localStorage.getItem('user')
     return userStr ? JSON.parse(userStr) : null
-  }
+  },
 }

@@ -480,6 +480,11 @@ const handleSubmit = async () => {
   top: 12px;
   color: #94a3b8;
   font-weight: 700;
+  pointer-events: none;
+}
+
+.input-with-icon input {
+  padding-left: 32px;
 }
 
 .toggle-pill {

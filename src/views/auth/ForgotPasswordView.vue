@@ -26,11 +26,7 @@
             <span v-if="errors.email" class="form-error">{{ errors.email }}</span>
           </div>
 
-          <button
-            type="submit"
-            class="btn btn-primary btn-full"
-            :disabled="authStore.loading"
-          >
+          <button type="submit" class="btn btn-primary btn-full" :disabled="authStore.loading">
             <span v-if="authStore.loading" class="spinner"></span>
             {{ authStore.loading ? 'Sending...' : 'Send Reset Link' }}
           </button>
@@ -38,8 +34,19 @@
 
         <div class="auth-footer">
           <router-link to="/login" class="link">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px; display: inline; margin-right: 4px;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              style="width: 16px; height: 16px; display: inline; margin-right: 4px"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
             </svg>
             Back to Login
           </router-link>

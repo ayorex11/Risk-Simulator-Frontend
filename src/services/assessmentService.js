@@ -106,4 +106,17 @@ export default {
     const response = await api.delete(`/assessments/evidence/${evidenceId}/`)
     return response.data
   },
+
+  // Template Questions
+  async addQuestionsToTemplate(templateId, questionIds) {
+    const response = await api.post(`/assessments/templates/${templateId}/questions/`, {
+      question_ids: questionIds,
+    })
+    return response.data
+  },
+
+  async removeQuestionFromTemplate(templateId, tqId) {
+    const response = await api.delete(`/assessments/templates/${templateId}/questions/${tqId}/`)
+    return response.data
+  },
 }

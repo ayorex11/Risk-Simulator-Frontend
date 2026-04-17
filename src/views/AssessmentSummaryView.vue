@@ -31,6 +31,16 @@
         <LoadingSpinner />
       </div>
 
+      <!-- Error State -->
+      <div
+        v-else-if="error"
+        class="empty-mini card glass p-20"
+        style="text-align: center; margin-top: 40px"
+      >
+        <p style="color: #ef4444; font-weight: 700">{{ error }}</p>
+        <button @click="loadSummary" class="btn btn-primary" style="margin-top: 16px">Retry</button>
+      </div>
+
       <!-- Content -->
       <div v-else-if="summary" class="summary-content">
         <!-- Stats Grid -->
@@ -179,13 +189,27 @@ const router = useRouter()
 const assessmentStore = useAssessmentStore()
 const summary = ref(null)
 const loading = ref(true)
+const error = ref(null)
 
 const loadSummary = async () => {
   loading.value = true
+  error.value = null
   try {
-    summary.value = await assessmentStore.fetchAssessmentSummary()
-  } catch (error) {
-    console.error('Failed to load summary:', error)
+    const response = await assessmentStore.fetchAssessmentSummary()
+    // Normalize the response — handle both flat and paginated shapes
+    if (response) {
+      summary.value = {
+        total_assessments: response.total_assessments ?? response.count ?? 0,
+        completed_assessments: response.completed_assessments ?? 0,
+        pending_assessments: response.pending_assessments ?? 0,
+        average_score: response.average_score ?? 0,
+        recent_assessments: response.recent_assessments ?? response.results ?? [],
+        vendors_needing_assessment: response.vendors_needing_assessment ?? [],
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load summary:', err)
+    error.value = err.response?.data?.error || 'Failed to load portfolio summary. Please try again.'
   } finally {
     loading.value = false
   }

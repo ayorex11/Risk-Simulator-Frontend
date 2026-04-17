@@ -14,7 +14,7 @@
             <p class="page-subtitle">Manage and audit your third-party relationship network.</p>
           </div>
           <div class="header-actions">
-            <button v-if="isManager" @click="router.push('/vendors/new')" class="btn btn-primary">
+            <button v-if="isAnalyst" @click="router.push('/vendors/new')" class="btn btn-primary">
               <Plus class="icon-sm" />
               <span>Add New Vendor</span>
             </button>
@@ -93,7 +93,7 @@
         </p>
         <div class="empty-actions">
           <button @click="resetFilters" class="btn btn-secondary">Clear All Filters</button>
-          <button v-if="isManager" @click="router.push('/vendors/new')" class="btn btn-primary">
+          <button v-if="isAnalyst" @click="router.push('/vendors/new')" class="btn btn-primary">
             Log New Entity
           </button>
         </div>
@@ -144,7 +144,7 @@
                 vendor.is_active ? 'Production' : 'Off-contract'
               }}</span>
             </div>
-            <div v-if="isManager" class="card-actions" @click.stop>
+            <div v-if="isAnalyst" class="card-actions" @click.stop>
               <button @click="editVendor(vendor)" class="action-btn edit" title="Edit">
                 <Edit class="icon-xs" />
               </button>
@@ -229,7 +229,7 @@ const router = useRouter()
 const vendorStore = useVendorStore()
 const coreStore = useCoreStore()
 
-const isManager = computed(() => coreStore.isManager)
+const isAnalyst = computed(() => coreStore.isAnalyst)
 
 const searchQuery = ref('')
 const filterRiskLevel = ref('')

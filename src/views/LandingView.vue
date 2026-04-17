@@ -26,9 +26,10 @@
             <span class="gradient-text">Third-Party Vendor Risks</span>
           </h1>
           <p class="hero-subtitle">
-            Go beyond static assessments with Scenario Forge - the advanced Third-Party Vendor Risk Simulator
-            that enables organizations to model security incidents before they occur, predict financial impacts,
-            and evaluate mitigation strategies through interactive simulations.
+            Go beyond static assessments with Scenario Forge - the advanced Third-Party Vendor Risk
+            Simulator that enables organizations to model security incidents before they occur,
+            predict financial impacts, and evaluate mitigation strategies through interactive
+            simulations.
           </p>
           <div class="hero-buttons">
             <router-link to="/register" class="btn btn-primary btn-lg">
@@ -79,17 +80,25 @@
           <div class="problem-card">
             <AlertTriangle class="problem-icon" />
             <h3>Reactive Assessments</h3>
-            <p>Traditional questionnaires provide only point-in-time snapshots, failing to predict future incidents</p>
+            <p>
+              Traditional questionnaires provide only point-in-time snapshots, failing to predict
+              future incidents
+            </p>
           </div>
           <div class="problem-card">
             <Network class="problem-icon" />
             <h3>Cascading Failures</h3>
-            <p>No tools to visualize how vendor compromises propagate through interconnected systems</p>
+            <p>
+              No tools to visualize how vendor compromises propagate through interconnected systems
+            </p>
           </div>
           <div class="problem-card">
             <TrendingUp class="problem-icon" />
             <h3>No Predictive Capability</h3>
-            <p>Cannot forecast potential scenarios or simulate "what-if" analyses for mitigation strategies</p>
+            <p>
+              Cannot forecast potential scenarios or simulate "what-if" analyses for mitigation
+              strategies
+            </p>
           </div>
         </div>
       </div>
@@ -99,51 +108,67 @@
     <section id="features" class="features-section">
       <div class="container">
         <h2 class="section-title">Powerful Features</h2>
-        <p class="section-subtitle">
-          Everything you need for proactive vendor risk management
-        </p>
+        <p class="section-subtitle">Everything you need for proactive vendor risk management</p>
         <div class="features-grid">
           <div class="feature-card">
             <div class="feature-icon">
               <Shield />
             </div>
             <h3>Comprehensive Risk Assessment</h3>
-            <p>Evaluate vendors across 6 key factors: security posture, data sensitivity, service criticality, incident history, compliance status, and third-party dependencies</p>
+            <p>
+              Evaluate vendors across 6 key factors: security posture, data sensitivity, service
+              criticality, incident history, compliance status, and third-party dependencies
+            </p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
               <Zap />
             </div>
             <h3>Scenario Simulations</h3>
-            <p>Model data breaches, ransomware attacks, service disruptions, supply chain compromises, and multi-vendor failures with realistic parameters</p>
+            <p>
+              Model data breaches, ransomware attacks, service disruptions, supply chain
+              compromises, and multi-vendor failures with realistic parameters
+            </p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
               <TrendingUp />
             </div>
             <h3>Impact Prediction</h3>
-            <p>Calculate financial impacts, operational consequences, recovery time estimates, and cascading effects across dependent systems</p>
+            <p>
+              Calculate financial impacts, operational consequences, recovery time estimates, and
+              cascading effects across dependent systems
+            </p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
               <BarChart3 />
             </div>
             <h3>Monte Carlo Simulation</h3>
-            <p>Run 1,000-10,000 iterations with probability distributions to understand the full range of potential outcomes</p>
+            <p>
+              Run 1,000-10,000 iterations with probability distributions to understand the full
+              range of potential outcomes
+            </p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
               <Network />
             </div>
             <h3>Dependency Mapping</h3>
-            <p>Visualize vendor interdependencies and model how failures cascade through your ecosystem</p>
+            <p>
+              Visualize vendor interdependencies and model how failures cascade through your
+              ecosystem
+            </p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
               <CheckCircle />
             </div>
             <h3>What-If Analysis</h3>
-            <p>Test different mitigation strategies and compare their effectiveness through comparative simulations</p>
+            <p>
+              Test different mitigation strategies and compare their effectiveness through
+              comparative simulations
+            </p>
           </div>
         </div>
       </div>
@@ -159,28 +184,40 @@
             <div class="step-number">1</div>
             <div class="step-content">
               <h3>Register Vendors</h3>
-              <p>Add your third-party vendors and complete comprehensive security assessments through structured questionnaires</p>
+              <p>
+                Add your third-party vendors and complete comprehensive security assessments through
+                structured questionnaires
+              </p>
             </div>
           </div>
           <div class="step">
             <div class="step-number">2</div>
             <div class="step-content">
               <h3>Calculate Risk Scores</h3>
-              <p>Automatic risk scoring based on security posture, data access, service criticality, and compliance status</p>
+              <p>
+                Automatic risk scoring based on security posture, data access, service criticality,
+                and compliance status
+              </p>
             </div>
           </div>
           <div class="step">
             <div class="step-number">3</div>
             <div class="step-content">
               <h3>Run Simulations</h3>
-              <p>Select incident scenarios and configure parameters to simulate potential security events</p>
+              <p>
+                Select incident scenarios and configure parameters to simulate potential security
+                events
+              </p>
             </div>
           </div>
           <div class="step">
             <div class="step-number">4</div>
             <div class="step-content">
               <h3>Analyze Results</h3>
-              <p>Review predicted impacts, visualize cascading effects, and evaluate mitigation strategies</p>
+              <p>
+                Review predicted impacts, visualize cascading effects, and evaluate mitigation
+                strategies
+              </p>
             </div>
           </div>
         </div>
@@ -195,19 +232,31 @@
         <div class="scenarios-grid">
           <div class="scenario-card">
             <h3>🔓 Data Breach</h3>
-            <p>Simulate unauthorized access and data exfiltration with parameters for breach vector, records compromised, and detection time</p>
+            <p>
+              Simulate unauthorized access and data exfiltration with parameters for breach vector,
+              records compromised, and detection time
+            </p>
           </div>
           <div class="scenario-card">
             <h3>🔐 Ransomware Attack</h3>
-            <p>Model encryption malware with parameters for scope, ransom amount, and downtime duration</p>
+            <p>
+              Model encryption malware with parameters for scope, ransom amount, and downtime
+              duration
+            </p>
           </div>
           <div class="scenario-card">
             <h3>⚠️ Service Disruption</h3>
-            <p>Analyze outages from technical failures or attacks with duration and recovery time parameters</p>
+            <p>
+              Analyze outages from technical failures or attacks with duration and recovery time
+              parameters
+            </p>
           </div>
           <div class="scenario-card">
             <h3>🔗 Supply Chain Compromise</h3>
-            <p>Simulate malicious code injection similar to SolarWinds with deployment scope parameters</p>
+            <p>
+              Simulate malicious code injection similar to SolarWinds with deployment scope
+              parameters
+            </p>
           </div>
           <div class="scenario-card">
             <h3>⚡ Multi-Vendor Failure</h3>
@@ -270,7 +319,16 @@
 </template>
 
 <script setup>
-import { Shield, TrendingUp, AlertTriangle, Network, CheckCircle, BarChart3, ArrowRight, Zap } from 'lucide-vue-next'
+import {
+  Shield,
+  TrendingUp,
+  AlertTriangle,
+  Network,
+  CheckCircle,
+  BarChart3,
+  ArrowRight,
+  Zap,
+} from 'lucide-vue-next'
 </script>
 
 <style scoped>

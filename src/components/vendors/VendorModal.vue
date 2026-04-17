@@ -305,7 +305,7 @@
 
             <div class="form-group">
               <label for="compliance_score" class="form-label">
-                Compliance Score (0-100)
+                Compliance Score (0-50)
                 <span class="label-hint">{{ formData.compliance_score }}</span>
               </label>
               <input
@@ -313,19 +313,19 @@
                 v-model.number="formData.compliance_score"
                 type="range"
                 min="0"
-                max="100"
+                max="50"
                 class="form-range"
               />
               <div class="range-labels">
                 <span>None (0)</span>
-                <span>Excellent (100)</span>
+                <span>Excellent (50)</span>
               </div>
             </div>
           </div>
 
           <div class="form-group">
             <label for="third_party_dependencies_score" class="form-label">
-              Third-Party Dependencies Risk (0-100)
+              Third-Party Dependencies Risk (0-50)
               <span class="label-hint">{{ formData.third_party_dependencies_score }}</span>
             </label>
             <input
@@ -333,12 +333,12 @@
               v-model.number="formData.third_party_dependencies_score"
               type="range"
               min="0"
-              max="100"
+              max="50"
               class="form-range"
             />
             <div class="range-labels">
               <span>Low Risk (0)</span>
-              <span>High Risk (100)</span>
+              <span>High Risk (50)</span>
             </div>
           </div>
         </div>

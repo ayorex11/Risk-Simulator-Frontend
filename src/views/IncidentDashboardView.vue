@@ -64,7 +64,9 @@
               </div>
               <div class="stat-body">
                 <span class="stat-label">Financial Impact</span>
-                <span class="stat-value">${{ formatNumberShort(trends.total_financial_impact) }}</span>
+                <span class="stat-value"
+                  >${{ formatNumberShort(trends.total_financial_impact) }}</span
+                >
                 <span class="stat-footer critical">Aggregate Exposure</span>
               </div>
               <div class="stat-indicator"></div>
@@ -107,7 +109,11 @@
               </div>
               <div class="card-body">
                 <div class="distribution-list">
-                  <div v-for="(count, type) in trends.by_type" :key="type" class="distribution-item">
+                  <div
+                    v-for="(count, type) in trends.by_type"
+                    :key="type"
+                    class="distribution-item"
+                  >
                     <div class="distribution-info">
                       <span class="type-name">{{ type.replace('_', ' ') }}</span>
                       <span class="type-count">
@@ -891,7 +897,12 @@ const formatNumberShort = (num) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to right, transparent 20%, rgba(255, 255, 255, 0.3) 50%, transparent 80%);
+  background: linear-gradient(
+    to right,
+    transparent 20%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 80%
+  );
 }
 
 .bar-glow {

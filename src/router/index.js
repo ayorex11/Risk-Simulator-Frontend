@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import authService from '../services/authService'
+import { useCoreStore } from '../stores/core'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,109 +57,146 @@ const router = createRouter({
       path: '/vendors',
       name: 'Vendors',
       component: () => import('../views/VendorsView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/vendors/compare',
       name: 'VendorComparison',
       component: () => import('../views/VendorComparisonView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/vendors/new',
       name: 'VendorNew',
       component: () => import('../views/VendorCreateView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/vendors/:id',
       name: 'VendorDetail',
       component: () => import('../views/VendorDetailView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/incidents',
       name: 'Incidents',
       component: () => import('../views/IncidentsView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/incidents/trends',
       name: 'IncidentTrends',
       component: () => import('../views/IncidentDashboardView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
+    },
+    {
+      path: '/simulations',
+      name: 'Simulations',
+      component: () => import('../views/SimulationsView.vue'),
+      meta: { requiresAuth: true, requiresOrganization: true },
+    },
+    {
+      path: '/simulations/summary',
+      name: 'SimulationSummary',
+      component: () => import('../views/SimulationSummaryView.vue'),
+      meta: { requiresAuth: true, requiresOrganization: true },
+    },
+    {
+      path: '/simulations/compare',
+      name: 'SimulationCompare',
+      component: () => import('../views/SimulationComparisonView.vue'),
+      meta: { requiresAuth: true, requiresOrganization: true },
+    },
+    {
+      path: '/simulations/new',
+      name: 'SimulationNew',
+      component: () => import('../views/SimulationCreateView.vue'),
+      meta: { requiresAuth: true, requiresOrganization: true },
+    },
+    {
+      path: '/simulations/:id',
+      name: 'SimulationDetail',
+      component: () => import('../views/SimulationDetailView.vue'),
+      meta: { requiresAuth: true, requiresOrganization: true },
+    },
+
+    {
+      path: '/processes/dependency-map',
+      name: 'DependencyMap',
+      component: () => import('../views/DependencyMapView.vue'),
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/assessments',
       name: 'Assessments',
       component: () => import('../views/AssessmentsView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/assessments/new',
       name: 'AssessmentNew',
       component: () => import('../views/AssessmentCreateView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/assessments/:id',
       name: 'AssessmentDetail',
       component: () => import('../views/AssessmentDetailView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/assessments/:id/questionnaire',
       name: 'AssessmentQuestionnaire',
       component: () => import('../views/AssessmentQuestionnaireView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/assessments/:id/compare',
       name: 'AssessmentComparison',
       component: () => import('../views/AssessmentComparisonView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/assessments/summary',
       name: 'AssessmentSummary',
       component: () => import('../views/AssessmentSummaryView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/assessments/questions',
       name: 'QuestionManagement',
       component: () => import('../views/QuestionManagementView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/assessments/templates',
       name: 'TemplateManagement',
       component: () => import('../views/TemplateManagementView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/assessments/templates/:id',
       name: 'TemplateDetail',
       component: () => import('../views/TemplateDetailView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/organization/settings',
       name: 'OrganizationSettings',
       component: () => import('../views/OrganizationSettingsView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/organization/requests',
       name: 'OrganizationRequests',
       component: () => import('../views/OrganizationRequestsView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
       path: '/organization/members',
       name: 'MemberManagement',
       component: () => import('../views/MemberManagementView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresOrganization: true },
     },
   ],
 })
@@ -171,6 +209,26 @@ router.beforeEach((to, from, next) => {
     next('/login')
   } else if (to.meta.requiresGuest && isAuthenticated) {
     next('/dashboard')
+  } else if (to.meta.requiresOrganization) {
+    const user = authService.getCurrentUser()
+    const hasOrgFromUser = !!(
+      user?.organization ||
+      user?.organization_id ||
+      user?.profile?.organization
+    )
+    // Also check the Pinia store which has up-to-date data after fetchPermissions/fetchCurrentUser
+    let hasOrgFromStore = false
+    try {
+      const coreStore = useCoreStore()
+      hasOrgFromStore = coreStore.hasOrganization
+    } catch {
+      // Store may not be initialized yet
+    }
+    if (!hasOrgFromUser && !hasOrgFromStore) {
+      next('/dashboard')
+    } else {
+      next()
+    }
   } else {
     next()
   }

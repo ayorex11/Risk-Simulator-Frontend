@@ -13,9 +13,7 @@
           </div>
           <h2>Password Reset Successful!</h2>
           <p class="text-muted mb-3">Your password has been reset successfully.</p>
-          <router-link to="/login" class="btn btn-primary">
-            Go to Login
-          </router-link>
+          <router-link to="/login" class="btn btn-primary"> Go to Login </router-link>
         </div>
 
         <form v-else @submit.prevent="handleResetPassword" class="auth-form">
@@ -70,20 +68,14 @@
             <span v-if="errors.new_password2" class="form-error">{{ errors.new_password2 }}</span>
           </div>
 
-          <button
-            type="submit"
-            class="btn btn-primary btn-full"
-            :disabled="authStore.loading"
-          >
+          <button type="submit" class="btn btn-primary btn-full" :disabled="authStore.loading">
             <span v-if="authStore.loading" class="spinner"></span>
             {{ authStore.loading ? 'Resetting...' : 'Reset Password' }}
           </button>
         </form>
 
         <div class="auth-footer" v-if="!resetSuccess">
-          <router-link to="/login" class="link">
-            Back to Login
-          </router-link>
+          <router-link to="/login" class="link"> Back to Login </router-link>
         </div>
       </div>
     </div>
@@ -102,7 +94,7 @@ const authStore = useAuthStore()
 
 const formData = ref({
   new_password: '',
-  new_password2: ''
+  new_password2: '',
 })
 
 const errors = ref({})
@@ -130,7 +122,7 @@ const validateForm = () => {
 
   const passwordMatchError = validatePasswordMatch(
     formData.value.new_password,
-    formData.value.new_password2
+    formData.value.new_password2,
   )
   if (passwordMatchError) {
     errors.value.new_password2 = passwordMatchError
@@ -147,7 +139,7 @@ const handleResetPassword = async () => {
     await authStore.resetPassword(
       token.value,
       formData.value.new_password,
-      formData.value.new_password2
+      formData.value.new_password2,
     )
     resetSuccess.value = true
   } catch (error) {

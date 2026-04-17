@@ -4,8 +4,8 @@ import router from '../router'
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 })
 
 // Request interceptor to add token
@@ -19,7 +19,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error)
-  }
+  },
 )
 
 // Response interceptor to handle token refresh
@@ -41,7 +41,7 @@ api.interceptors.response.use(
         // Try to refresh the token
         const response = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/api/token/refresh/`,
-          { refresh: refreshToken }
+          { refresh: refreshToken },
         )
 
         const { access } = response.data
@@ -61,7 +61,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error)
-  }
+  },
 )
 
 export default api

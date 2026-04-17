@@ -9,12 +9,12 @@ export const useAuthStore = defineStore('auth', {
     user: authService.getCurrentUser(),
     isAuthenticated: authService.isAuthenticated(),
     loading: false,
-    error: null
+    error: null,
   }),
 
   getters: {
     getUser: (state) => state.user,
-    isLoggedIn: (state) => state.isAuthenticated
+    isLoggedIn: (state) => state.isAuthenticated,
   },
 
   actions: {
@@ -26,9 +26,8 @@ export const useAuthStore = defineStore('auth', {
         toast.success(response.message || 'Registration successful! Please check your email.')
         return response
       } catch (error) {
-        const errorMsg = error.response?.data?.error ||
-                        error.response?.data?.email?.[0] ||
-                        'Registration failed'
+        const errorMsg =
+          error.response?.data?.error || error.response?.data?.email?.[0] || 'Registration failed'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error
@@ -129,9 +128,10 @@ export const useAuthStore = defineStore('auth', {
         toast.success(response.message || 'Password reset successfully!')
         return response
       } catch (error) {
-        const errorMsg = error.response?.data?.error ||
-                        error.response?.data?.new_password?.[0] ||
-                        'Password reset failed'
+        const errorMsg =
+          error.response?.data?.error ||
+          error.response?.data?.new_password?.[0] ||
+          'Password reset failed'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error
@@ -148,9 +148,10 @@ export const useAuthStore = defineStore('auth', {
         toast.success(response.message || 'Password changed successfully!')
         return response
       } catch (error) {
-        const errorMsg = error.response?.data?.error ||
-                        error.response?.data?.new_password?.[0] ||
-                        'Password change failed'
+        const errorMsg =
+          error.response?.data?.error ||
+          error.response?.data?.new_password?.[0] ||
+          'Password change failed'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error
@@ -174,6 +175,6 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.loading = false
       }
-    }
-  }
+    },
+  },
 })

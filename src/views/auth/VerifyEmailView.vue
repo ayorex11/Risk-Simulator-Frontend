@@ -9,21 +9,39 @@
 
           <div v-else-if="verificationSuccess" class="success-content">
             <div class="success-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <h1>Email Verified!</h1>
             <p class="text-muted">Your email has been successfully verified.</p>
-            <router-link to="/login" class="btn btn-primary mt-3">
-              Go to Login
-            </router-link>
+            <router-link to="/login" class="btn btn-primary mt-3"> Go to Login </router-link>
           </div>
 
           <div v-else class="error-content">
             <div class="error-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </div>
             <h1>Verification Failed</h1>
@@ -39,17 +57,13 @@
                   placeholder="Enter your email"
                   required
                 />
-                <button
-                  type="submit"
-                  class="btn btn-primary mt-2"
-                  :disabled="authStore.loading"
-                >
+                <button type="submit" class="btn btn-primary mt-2" :disabled="authStore.loading">
                   {{ authStore.loading ? 'Sending...' : 'Resend Verification' }}
                 </button>
               </form>
             </div>
 
-            <router-link to="/login" class="link mt-3" style="display: block; text-align: center;">
+            <router-link to="/login" class="link mt-3" style="display: block; text-align: center">
               Back to Login
             </router-link>
           </div>
@@ -85,7 +99,8 @@ onMounted(async () => {
     verificationSuccess.value = true
   } catch (error) {
     verificationSuccess.value = false
-    errorMessage.value = error.response?.data?.error || 'Verification failed. The link may have expired.'
+    errorMessage.value =
+      error.response?.data?.error || 'Verification failed. The link may have expired.'
   }
 })
 

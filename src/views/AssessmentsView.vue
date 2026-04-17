@@ -20,7 +20,7 @@
               <BarChart3 class="icon-sm" />
               <span>Portfolio Summary</span>
             </router-link>
-            <router-link to="/assessments/new" class="btn btn-primary">
+            <router-link v-if="canCreate" to="/assessments/new" class="btn btn-primary">
               <Plus class="icon-sm" />
               <span>New Assessment</span>
             </router-link>
@@ -90,7 +90,9 @@
         </p>
         <div class="empty-actions">
           <button @click="resetFilters" class="btn btn-secondary">Clear All Filters</button>
-          <router-link to="/assessments/new" class="btn btn-primary">Launch Assessment</router-link>
+          <router-link v-if="canCreate" to="/assessments/new" class="btn btn-primary"
+            >Launch Assessment</router-link
+          >
         </div>
       </div>
 
@@ -140,7 +142,10 @@
                 <Eye class="icon-xs" />
               </button>
               <button
-                v-if="assessment.status === 'draft' || assessment.status === 'in_progress'"
+                v-if="
+                  canCreate &&
+                  (assessment.status === 'draft' || assessment.status === 'in_progress')
+                "
                 @click.stop="editAssessment(assessment)"
                 class="action-btn edit"
                 title="Modify"
@@ -148,7 +153,7 @@
                 <Edit class="icon-xs" />
               </button>
               <button
-                v-if="assessment.status === 'draft'"
+                v-if="canCreate && assessment.status === 'draft'"
                 @click.stop="deleteAssessmentConfirm(assessment)"
                 class="action-btn delete"
                 title="Remove"
@@ -205,6 +210,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAssessmentStore } from '../stores/assessment'
+import { useCoreStore } from '../stores/core'
 import NavBar from '../components/common/NavBar.vue'
 import LoadingSpinner from '../components/common/LoadingSpinner.vue'
 import {
@@ -223,6 +229,11 @@ import {
 
 const router = useRouter()
 const assessmentStore = useAssessmentStore()
+const coreStore = useCoreStore()
+
+const canCreate = computed(() =>
+  ['admin', 'analyst', 'manager'].includes(coreStore.permissions?.role),
+)
 
 const searchQuery = ref('')
 const filterStatus = ref('')
