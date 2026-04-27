@@ -1,5 +1,6 @@
 import axios from 'axios'
 import router from '../router'
+import { useAuthStore } from '../stores/auth'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -11,7 +12,7 @@ const api = axios.create({
 // Request interceptor to add token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token')
+    const token = useAuthStore().accessToken
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -45,14 +46,14 @@ api.interceptors.response.use(
         )
 
         const { access } = response.data
-        localStorage.setItem('access_token', access)
+        useAuthStore().setAccessToken(access)
 
         // Retry the original request with new token
         originalRequest.headers.Authorization = `Bearer ${access}`
         return api(originalRequest)
       } catch (refreshError) {
         // Refresh failed, logout user
-        localStorage.removeItem('access_token')
+        useAuthStore().clearAccessToken()
         localStorage.removeItem('refresh_token')
         localStorage.removeItem('user')
         router.push('/login')

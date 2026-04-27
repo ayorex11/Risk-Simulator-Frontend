@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import authService from '../services/authService'
 import { useCoreStore } from '../stores/core'
+import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -67,8 +68,14 @@ const router = createRouter({
     },
     {
       path: '/vendors/new',
-      name: 'VendorNew',
+      name: 'VendorCreate',
       component: () => import('../views/VendorCreateView.vue'),
+      meta: { requiresAuth: true, requiresOrganization: true },
+    },
+    {
+      path: '/risk-heatmap',
+      name: 'risk-heatmap',
+      component: () => import('../views/RiskHeatmapView.vue'),
       meta: { requiresAuth: true, requiresOrganization: true },
     },
     {
@@ -120,6 +127,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresOrganization: true },
     },
 
+    {
+      path: '/processes',
+      name: 'Processes',
+      component: () => import('../views/ProcessesView.vue'),
+      meta: { requiresAuth: true, requiresOrganization: true },
+    },
     {
       path: '/processes/dependency-map',
       name: 'DependencyMap',
@@ -203,7 +216,21 @@ const router = createRouter({
 
 // Navigation guards
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = authService.isAuthenticated()
+  const authStore = useAuthStore()
+  let isAuthenticated = authService.isAuthenticated()
+
+  const token = authStore.accessToken
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      if (payload.exp * 1000 < Date.now()) {
+        authStore.clearAccessToken()
+        isAuthenticated = false
+      }
+    } catch(e) {
+      isAuthenticated = false
+    }
+  }
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login')

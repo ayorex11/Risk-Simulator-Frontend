@@ -91,7 +91,11 @@ export const useAssessmentStore = defineStore('assessment', {
         toast.success('Assessment created successfully!')
         return response
       } catch (error) {
-        const errorMsg = error.response?.data?.error || 'Failed to create assessment'
+        const data = error.response?.data
+        if (error.response?.status === 400 && data && typeof data === 'object' && !data.error) {
+          return { fieldErrors: data }
+        }
+        const errorMsg = data?.error || data?.detail || 'Failed to create assessment'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error

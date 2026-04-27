@@ -151,7 +151,8 @@
         </div>
 
         <!-- Breakdown by Scenario Type -->
-        <section v-if="summary.by_scenario_type?.length" class="content-card full-width">
+        <!-- FIX: was checking .length on a plain object — now normalized to array in loadSummary -->
+        <section v-if="summary.by_scenario_type.length" class="content-card full-width">
           <div class="card-header">
             <div class="header-left">
               <div class="header-icon scenario">
@@ -164,12 +165,10 @@
             <div class="breakdown-grid">
               <div
                 v-for="item in summary.by_scenario_type"
-                :key="item.scenario_type || item.scenario_name"
+                :key="item.scenario_type"
                 class="breakdown-card"
               >
-                <span class="breakdown-type">{{
-                  formatScenarioType(item.scenario_type || item.scenario_name)
-                }}</span>
+                <span class="breakdown-type">{{ formatScenarioType(item.scenario_type) }}</span>
                 <span class="breakdown-count"
                   >{{ item.count }} simulation{{ item.count !== 1 ? 's' : '' }}</span
                 >
@@ -182,7 +181,8 @@
         </section>
 
         <!-- Breakdown by Vendor -->
-        <section v-if="summary.by_vendor?.length" class="content-card full-width">
+        <!-- FIX: same — normalized to array in loadSummary -->
+        <section v-if="summary.by_vendor.length" class="content-card full-width">
           <div class="card-header">
             <div class="header-left">
               <div class="header-icon vendor">
@@ -195,7 +195,7 @@
             <div class="vendor-breakdown">
               <div
                 v-for="item in summary.by_vendor"
-                :key="item.vendor_id || item.vendor_name"
+                :key="item.vendor_name"
                 class="vendor-row"
               >
                 <div class="vendor-info">
@@ -254,6 +254,19 @@ const recentSims = computed(() => {
   return Array.isArray(list) ? list.slice(0, 5) : []
 })
 
+// Converts a plain object like { supply_chain: 6, cyber: 2 }
+// into an array like [{ scenario_type: 'supply_chain', count: 6 }, ...]
+// so the template can use v-for and .length checks correctly.
+const normalizeObjectToArray = (data, keyName = 'key', valueName = 'count') => {
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  return Object.entries(data).map(([key, value]) => ({
+    [keyName]: key,
+    // If value is already an object (e.g. { count, average_impact }), spread it; otherwise treat it as the count
+    ...(typeof value === 'object' && value !== null ? value : { [valueName]: value }),
+  }))
+}
+
 const loadSummary = async () => {
   loading.value = true
   error.value = null
@@ -265,12 +278,20 @@ const loadSummary = async () => {
         completed_simulations: response.completed_simulations ?? 0,
         pending_simulations: response.pending_simulations ?? 0,
         failed_simulations: response.failed_simulations ?? 0,
-        total_financial_exposure: response.total_financial_exposure ?? 0,
+        // FIX: backend sends total_estimated_impact, not total_financial_exposure
+        total_financial_exposure: response.total_estimated_impact ?? 0,
+        // FIX: backend sends average_recovery_time, not average_recovery_time_hours
         average_recovery_time: response.average_recovery_time ?? 0,
         recent_simulations: response.recent_simulations ?? [],
         highest_impact_scenarios: response.highest_impact_scenarios ?? [],
-        by_scenario_type: response.by_scenario_type ?? [],
-        by_vendor: response.by_vendor ?? [],
+        // FIX: backend returns plain objects (dicts), normalize both to arrays
+        // so v-for and .length work correctly in the template
+        by_scenario_type: normalizeObjectToArray(
+          response.by_scenario_type,
+          'scenario_type',
+          'count',
+        ),
+        by_vendor: normalizeObjectToArray(response.by_vendor, 'vendor_name', 'count'),
       }
     }
   } catch (err) {

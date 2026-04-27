@@ -233,7 +233,7 @@ const handleUpdate = async () => {
     organization.value = updated
 
     // Show success notification (you can implement a toast system)
-    console.log('Organization updated successfully')
+    if (import.meta.env.DEV) console.log('Organization updated successfully')
   } catch (error) {
     console.error('Update failed:', error)
     // Show error notification

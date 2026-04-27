@@ -90,7 +90,11 @@ export const useVendorStore = defineStore('vendor', {
         toast.success('Vendor created successfully!')
         return response
       } catch (error) {
-        const errorMsg = error.response?.data?.error || 'Failed to create vendor'
+        const data = error.response?.data
+        if (error.response?.status === 400 && data && typeof data === 'object' && !data.error) {
+          return { fieldErrors: data }
+        }
+        const errorMsg = data?.error || data?.detail || 'Failed to create vendor'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error
@@ -114,7 +118,11 @@ export const useVendorStore = defineStore('vendor', {
         toast.success('Vendor updated successfully!')
         return response
       } catch (error) {
-        const errorMsg = error.response?.data?.error || 'Failed to update vendor'
+        const data = error.response?.data
+        if (error.response?.status === 400 && data && typeof data === 'object' && !data.error) {
+          return { fieldErrors: data }
+        }
+        const errorMsg = data?.error || data?.detail || 'Failed to update vendor'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error

@@ -149,7 +149,11 @@
                 type="date"
                 class="form-input"
                 required
+                @change="onStartDateChange"
               />
+              <span v-if="errors.contract_start_date" class="form-error">
+                {{ errors.contract_start_date }}
+              </span>
             </div>
 
             <div class="form-group">
@@ -159,8 +163,13 @@
                 v-model="formData.contract_end_date"
                 type="date"
                 class="form-input"
+                :class="{ error: errors.contract_end_date }"
+                :min="formData.contract_start_date || undefined"
                 required
               />
+              <span v-if="errors.contract_end_date" class="form-error">
+                {{ errors.contract_end_date }}
+              </span>
             </div>
           </div>
 
@@ -458,6 +467,20 @@ onMounted(async () => {
   }
 })
 
+const onStartDateChange = () => {
+  // If end date is already set and is now before the new start date, clear it
+  // and set the error so user knows they need to pick again
+  if (
+    formData.value.contract_end_date &&
+    new Date(formData.value.contract_end_date) < new Date(formData.value.contract_start_date)
+  ) {
+    formData.value.contract_end_date = ''
+    errors.value.contract_end_date = 'End date was before the new start date and has been cleared'
+  } else {
+    errors.value.contract_end_date = ''
+  }
+}
+
 const validateForm = () => {
   errors.value = {}
   let isValid = true
@@ -482,7 +505,18 @@ const validateForm = () => {
     isValid = false
   }
 
-  if (new Date(formData.value.contract_end_date) < new Date(formData.value.contract_start_date)) {
+  if (!formData.value.contract_start_date) {
+    errors.value.contract_start_date = 'Contract start date is required'
+    isValid = false
+  }
+
+  if (!formData.value.contract_end_date) {
+    errors.value.contract_end_date = 'Contract end date is required'
+    isValid = false
+  } else if (
+    formData.value.contract_start_date &&
+    new Date(formData.value.contract_end_date) <= new Date(formData.value.contract_start_date)
+  ) {
     errors.value.contract_end_date = 'End date must be after start date'
     isValid = false
   }
@@ -494,11 +528,21 @@ const handleSubmit = async () => {
   if (!validateForm()) return
 
   try {
+    let result
     if (props.isEdit) {
-      await vendorStore.updateVendor(props.vendor.id, formData.value)
+      result = await vendorStore.updateVendor(props.vendor.id, formData.value)
     } else {
-      await vendorStore.createVendor(formData.value)
+      result = await vendorStore.createVendor(formData.value)
     }
+
+    if (result && result.fieldErrors) {
+      Object.keys(result.fieldErrors).forEach(key => {
+        const val = result.fieldErrors[key]
+        errors.value[key] = Array.isArray(val) ? val[0] : val
+      })
+      return
+    }
+
     emit('save')
     emit('close')
   } catch (error) {

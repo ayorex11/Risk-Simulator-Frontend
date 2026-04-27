@@ -52,6 +52,22 @@
           </div>
         </div>
 
+        <!-- Summary Cards -->
+        <div v-if="summaryStats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.5rem;">
+          <div class="content-card info-card" style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 13px; color: #64748b; font-weight: 700; text-transform: uppercase;">Average Impact</div>
+            <div style="font-size: 24px; font-weight: 900; color: #0f172a;">{{ formatCurrency(summaryStats.average_impact) }}</div>
+          </div>
+          <div class="content-card info-card" style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 13px; color: #64748b; font-weight: 700; text-transform: uppercase;">Highest Impact</div>
+            <div style="font-size: 24px; font-weight: 900; color: #0f172a;">{{ formatCurrency(summaryStats.max_impact) }}</div>
+          </div>
+          <div class="content-card info-card" style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 13px; color: #64748b; font-weight: 700; text-transform: uppercase;">Lowest Impact</div>
+            <div style="font-size: 24px; font-weight: 900; color: #0f172a;">{{ formatCurrency(summaryStats.min_impact) }}</div>
+          </div>
+        </div>
+
         <!-- Comparative Chart -->
         <section class="content-card mt-8">
           <div class="card-header">
@@ -97,6 +113,14 @@
                   <td v-for="sim in simulations" :key="sim.id">{{ sim.result?.downtime_hours || '0' }}h</td>
                 </tr>
                 <tr>
+                  <td>Risk Score</td>
+                  <td v-for="sim in simulations" :key="sim.id">{{ (sim.result?.risk_score || 0).toFixed(1) }}</td>
+                </tr>
+                <tr>
+                  <td>Recovery Time</td>
+                  <td v-for="sim in simulations" :key="sim.id">{{ (sim.result?.estimated_recovery_time_hours || 0).toFixed(1) }}h</td>
+                </tr>
+                <tr>
                   <td>Customers Affected</td>
                   <td v-for="sim in simulations" :key="sim.id">{{ Number(sim.result?.customers_affected || 0).toLocaleString() }}</td>
                 </tr>
@@ -126,6 +150,16 @@ const simulationStore = useSimulationStore()
 
 const loading = ref(true)
 const simulations = ref([])
+const comparisonData = ref(null)
+const summaryStats = ref(null)
+
+const formatCurrency = (value) => {
+  if (!value && value !== 0) return '$0'
+  const num = parseFloat(value)
+  if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`
+  if (num >= 1000) return `$${(num / 1000).toFixed(1)}K`
+  return `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
 
 onMounted(async () => {
   const ids = route.query.id
@@ -133,20 +167,14 @@ onMounted(async () => {
     loading.value = false
     return
   }
-  
+
   const idArray = Array.isArray(ids) ? ids : [ids]
-  
+
   try {
-    const fetched = await Promise.all(
-      idArray.map(async (id) => {
-        const sim = await simulationStore.fetchSimulation(id)
-        if (sim && sim.status === 'completed' && !sim.result) {
-          sim.result = await simulationStore.fetchSimulationResults(id)
-        }
-        return sim
-      })
-    )
-    simulations.value = fetched.filter(s => s && s.status === 'completed')
+    const result = await simulationStore.compareSimulations(idArray)
+    comparisonData.value = result.comparison_data
+    summaryStats.value = result.summary_statistics
+    simulations.value = result.simulations || []
   } catch (error) {
     console.error("Error fetching comparison data", error)
   } finally {
@@ -160,7 +188,7 @@ const chartOption = computed(() => {
   const source = [
     ['Metric', 'Direct Costs', 'Operational Costs', 'Regulatory Fines', 'Reputational Damage']
   ]
-  
+
   simulations.value.forEach(sim => {
     source.push([
       sim.name,

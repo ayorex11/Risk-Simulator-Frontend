@@ -116,16 +116,18 @@
               class="form-input"
               placeholder="e.g. Q1 Ransomware Test"
             />
+            <span v-if="errors.name" class="form-error">{{ errors.name }}</span>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Description (optional)</label>
+            <label class="form-label">Description</label>
             <textarea
               v-model="form.description"
-              class="form-textarea"
-              rows="2"
-              placeholder="Brief description..."
+              class="form-input"
+              rows="3"
+              placeholder="Briefly describe the purpose of this simulation"
             ></textarea>
+            <span v-if="errors.description" class="form-error">{{ errors.description }}</span>
           </div>
 
           <div class="params-divider">
@@ -236,11 +238,11 @@
               </button>
             </div>
             <div v-if="form.use_monte_carlo" class="mc-options">
-              <label class="form-label">Iterations (100 – 10,000)</label>
+              <label class="form-label">Iterations (1,000 – 10,000)</label>
               <input
                 v-model.number="form.monte_carlo_iterations"
                 type="range"
-                min="100"
+                min="1000"
                 max="10000"
                 step="100"
                 class="range-input"
@@ -337,6 +339,8 @@ const form = ref({
   tags: [],
 })
 
+const errors = ref({})
+
 const filteredVendors = computed(() => {
   const vendors = vendorStore.vendors || []
   if (!vendorSearch.value) return vendors
@@ -432,8 +436,24 @@ const applyExample = (example) => {
 const submitSimulation = async () => {
   submitting.value = true
   try {
-    const simulation = await simulationStore.createSimulation(form.value)
-    router.push(`/simulations/${simulation.id}`)
+    const payload = {
+      ...form.value,
+      parameters: form.value.parameters
+    }
+    const result = await simulationStore.createSimulation(payload)
+    if (result && result.fieldErrors) {
+      Object.keys(result.fieldErrors).forEach(key => {
+        const val = result.fieldErrors[key]
+        errors.value[key] = Array.isArray(val) ? val[0] : val
+      })
+      return
+    }
+    
+    // Setup background execution message if needed
+    if (form.value.auto_execute) {
+      // Logic for auto-execution
+    }
+    router.push(`/simulations/${result.id}`)
   } catch {
     // Error is handled by store toast
   } finally {

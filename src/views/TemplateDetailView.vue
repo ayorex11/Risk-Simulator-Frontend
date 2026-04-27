@@ -249,7 +249,7 @@ const addSelectedQuestions = async () => {
     // In a real app we'd have a bulk update endpoint or individual calls
     // For this demo, let's assume we call a method in the store
     await assessmentStore.addQuestionsToTemplate(template.value.id, selectedQuestionIds.value)
-    console.log('Adding questions:', selectedQuestionIds.value)
+    if (import.meta.env.DEV) console.log('Adding questions:', selectedQuestionIds.value)
 
     // Refresh
     await loadTemplate()
@@ -266,7 +266,7 @@ const removeQuestion = async (tqId) => {
 
   try {
     await assessmentStore.removeQuestionFromTemplate(template.value.id, tqId)
-    console.log('Removing template question:', tqId)
+    if (import.meta.env.DEV) console.log('Removing template question:', tqId)
     await loadTemplate()
   } catch (error) {
     console.error('Failed to remove question:', error)

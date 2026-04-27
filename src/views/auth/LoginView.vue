@@ -114,7 +114,14 @@ const handleLogin = async () => {
   if (!validateForm()) return
 
   try {
-    await authStore.login(formData.value)
+    const result = await authStore.login(formData.value)
+    if (result && result.fieldErrors) {
+      Object.keys(result.fieldErrors).forEach(key => {
+        const val = result.fieldErrors[key]
+        errors.value[key] = Array.isArray(val) ? val[0] : val
+      })
+      return
+    }
     router.push('/dashboard')
   } catch (error) {
     console.error('Login failed:', error)

@@ -570,11 +570,11 @@ const riskFactors = computed(() => [
   { label: 'Data Sensitivity', value: currentVendor.value?.data_sensitivity_level, max: 5 },
   { label: 'Service Criticality', value: currentVendor.value?.service_criticality_level, max: 5 },
   { label: 'Incident History', value: currentVendor.value?.incident_history_score, max: 100 },
-  { label: 'Regulatory Compliance', value: currentVendor.value?.compliance_score, max: 100 },
+  { label: 'Regulatory Compliance', value: currentVendor.value?.compliance_score, max: 50 },
   {
     label: 'Third-Party Risk',
     value: currentVendor.value?.third_party_dependencies_score,
-    max: 100,
+    max: 50,
   },
 ])
 

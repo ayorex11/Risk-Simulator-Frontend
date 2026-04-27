@@ -91,7 +91,11 @@ export const useSimulationStore = defineStore('simulation', {
         toast.success('Simulation created successfully')
         return response
       } catch (error) {
-        const errorMsg = error.response?.data?.error || 'Failed to create simulation'
+        const data = error.response?.data
+        if (error.response?.status === 400 && data && typeof data === 'object' && !data.error) {
+          return { fieldErrors: data }
+        }
+        const errorMsg = data?.error || data?.detail || 'Failed to create simulation'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error

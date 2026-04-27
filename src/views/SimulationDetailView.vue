@@ -76,9 +76,7 @@
                   }}
                 </button>
                 <button
-                  v-if="
-                    isAdmin && (simulation.status === 'pending' || simulation.status === 'failed')
-                  "
+                  v-if="isAdmin && (simulation.status === 'pending' || simulation.status === 'failed')"
                   @click="showDeleteModal = true"
                   class="btn btn-danger"
                 >
@@ -98,7 +96,7 @@
               <p>No tags have been assigned to this simulation yet.</p>
             </div>
             <div v-else class="tags-list">
-               <span v-for="tag in simulation.tags" :key="tag" class="tag-item">{{ tag }}</span>
+              <span v-for="tag in simulation.tags" :key="tag" class="tag-item">{{ tag }}</span>
             </div>
           </div>
         </div>
@@ -145,6 +143,7 @@
 
         <!-- Results Section -->
         <template v-if="simulation.status === 'completed' && results">
+
           <!-- Financial Impact -->
           <section class="content-card">
             <div class="card-header">
@@ -158,9 +157,7 @@
             <div class="card-body">
               <div class="impact-hero">
                 <span class="impact-label">Total Estimated Impact</span>
-                <span class="impact-value"
-                  >{{ formatCurrency(results.total_financial_impact) }}</span
-                >
+                <span class="impact-value">{{ formatCurrency(results.total_financial_impact) }}</span>
               </div>
               <div class="impact-grid">
                 <div class="impact-category">
@@ -174,41 +171,31 @@
                   <div class="category-color operational"></div>
                   <div class="category-info">
                     <span class="category-label">Operational Impact</span>
-                    <span class="category-value"
-                      >{{ formatCurrency(results.operational_costs) }}</span
-                    >
+                    <span class="category-value">{{ formatCurrency(results.operational_costs) }}</span>
                   </div>
                 </div>
                 <div class="impact-category">
                   <div class="category-color regulatory"></div>
                   <div class="category-info">
                     <span class="category-label">Regulatory Fines</span>
-                    <span class="category-value"
-                      >{{ formatCurrency(results.regulatory_costs) }}</span
-                    >
+                    <span class="category-value">{{ formatCurrency(results.regulatory_costs) }}</span>
                   </div>
                 </div>
                 <div class="impact-category">
                   <div class="category-color reputational"></div>
                   <div class="category-info">
                     <span class="category-label">Reputational Damage</span>
-                    <span class="category-value"
-                      >{{ formatCurrency(results.reputational_costs) }}</span
-                    >
+                    <span class="category-value">{{ formatCurrency(results.reputational_costs) }}</span>
                   </div>
                 </div>
                 <div
-                  v-if="
-                    results.total_cascading_impact && Number(results.total_cascading_impact) > 0
-                  "
+                  v-if="results.total_cascading_impact && Number(results.total_cascading_impact) > 0"
                   class="impact-category"
                 >
                   <div class="category-color cascading"></div>
                   <div class="category-info">
                     <span class="category-label">Cascading Impact</span>
-                    <span class="category-value"
-                      >{{ formatCurrency(results.total_cascading_impact) }}</span
-                    >
+                    <span class="category-value">{{ formatCurrency(results.total_cascading_impact) }}</span>
                   </div>
                 </div>
               </div>
@@ -242,27 +229,19 @@
                 </div>
                 <div class="metric-card">
                   <span class="metric-label">Recovery Time</span>
-                  <span class="metric-value"
-                    >{{ formatHours(results.estimated_recovery_time_hours) }}</span
-                  >
+                  <span class="metric-value">{{ formatHours(results.estimated_recovery_time_hours) }}</span>
                 </div>
                 <div class="metric-card">
                   <span class="metric-label">Customers Affected</span>
-                  <span class="metric-value">{{
-                    formatNumber(results.customers_affected || 0)
-                  }}</span>
+                  <span class="metric-value">{{ formatNumber(results.customers_affected || 0) }}</span>
                 </div>
                 <div class="metric-card">
                   <span class="metric-label">Productivity Loss</span>
-                  <span class="metric-value"
-                    >{{ (results.productivity_loss_percentage || 0).toFixed(0) }}%</span
-                  >
+                  <span class="metric-value">{{ (results.productivity_loss_percentage || 0).toFixed(0) }}%</span>
                 </div>
                 <div class="metric-card">
                   <span class="metric-label">Complexity</span>
-                  <span class="metric-value">{{
-                    formatKey(results.recovery_complexity || 'medium')
-                  }}</span>
+                  <span class="metric-value">{{ formatKey(results.recovery_complexity || 'medium') }}</span>
                 </div>
               </div>
             </div>
@@ -270,9 +249,7 @@
 
           <!-- Monte Carlo Results -->
           <section
-            v-if="
-              results.monte_carlo_results && Object.keys(results.monte_carlo_results).length > 0
-            "
+            v-if="results.monte_carlo_results && Object.keys(results.monte_carlo_results).length > 0"
             class="content-card"
           >
             <div class="card-header">
@@ -282,45 +259,34 @@
                 </div>
                 <h2 class="card-title">Monte Carlo Analysis</h2>
               </div>
-              <span class="mc-iterations"
-                >{{ results.monte_carlo_results.iterations?.toLocaleString() }} iterations</span
-              >
+              <span class="mc-iterations">
+                {{ results.monte_carlo_results.iterations?.toLocaleString() }} iterations
+              </span>
             </div>
             <div class="card-body">
               <div class="mc-grid">
                 <div class="mc-stat">
                   <span class="mc-label">Mean Impact</span>
-                  <span class="mc-value"
-                    >{{ formatCurrency(results.monte_carlo_results.mean) }}</span
-                  >
+                  <span class="mc-value">{{ formatCurrency(results.monte_carlo_results.mean) }}</span>
                 </div>
                 <div class="mc-stat">
                   <span class="mc-label">Median Impact</span>
-                  <span class="mc-value"
-                    >{{ formatCurrency(results.monte_carlo_results.median) }}</span
-                  >
+                  <span class="mc-value">{{ formatCurrency(results.monte_carlo_results.median) }}</span>
                 </div>
                 <div class="mc-stat">
                   <span class="mc-label">Std. Deviation</span>
-                  <span class="mc-value"
-                    >{{ formatCurrency(results.monte_carlo_results.std_dev) }}</span
-                  >
+                  <span class="mc-value">{{ formatCurrency(results.monte_carlo_results.std_dev) }}</span>
                 </div>
                 <div class="mc-stat">
                   <span class="mc-label">Min</span>
-                  <span class="mc-value"
-                    >{{ formatCurrency(results.monte_carlo_results.min) }}</span
-                  >
+                  <span class="mc-value">{{ formatCurrency(results.monte_carlo_results.min) }}</span>
                 </div>
                 <div class="mc-stat">
                   <span class="mc-label">Max</span>
-                  <span class="mc-value"
-                    >{{ formatCurrency(results.monte_carlo_results.max) }}</span
-                  >
+                  <span class="mc-value">{{ formatCurrency(results.monte_carlo_results.max) }}</span>
                 </div>
               </div>
 
-              <!-- Percentiles -->
               <div class="percentiles-section">
                 <h4 class="percentile-title">Percentile Breakdown</h4>
                 <div class="percentile-bar-container">
@@ -341,7 +307,6 @@
                 </div>
               </div>
 
-              <!-- Confidence Intervals -->
               <div v-if="results.monte_carlo_results.confidence_intervals" class="ci-section">
                 <h4 class="ci-title">Confidence Intervals</h4>
                 <div class="ci-grid">
@@ -360,27 +325,56 @@
             </div>
           </section>
 
-
           <!-- Affected Processes -->
           <section class="content-card">
             <div class="card-header">
               <div class="header-left">
-                <div class="header-icon params">
+                <div class="header-icon process-icon">
                   <Settings class="icon-xs" />
                 </div>
-                <h2 class="card-title">Affected Processes</h2>
+                <h2 class="card-title">Affected Business Processes</h2>
+                <span v-if="results.affected_processes?.length" class="count-badge">
+                  {{ results.affected_processes.length }}
+                </span>
               </div>
             </div>
             <div class="card-body">
-              <div v-if="!results.affected_processes || results.affected_processes.length === 0" class="empty-state">
-                <p>No business processes are linked to this vendor. Add business processes in the vendor management section to see cascading impact analysis.</p>
+              <div
+                v-if="!results.affected_processes || results.affected_processes.length === 0"
+                class="empty-state"
+              >
+                <p>
+                  No business processes are linked to this vendor. Add business processes in the
+                  vendor management section to see cascading impact analysis.
+                </p>
               </div>
-              <div v-else>
-                <ul class="rec-list">
-                  <li v-for="(proc, idx) in results.affected_processes" :key="idx" class="rec-item">
-                    {{ proc }}
-                  </li>
-                </ul>
+              <div v-else class="cascade-list">
+                <div
+                  v-for="(proc, idx) in results.affected_processes"
+                  :key="idx"
+                  class="cascade-item"
+                >
+                  <div class="cascade-left">
+                    <div class="cascade-avatar process-avatar">
+                      {{ getProcessInitial(proc) }}
+                    </div>
+                    <div class="cascade-info">
+                      <span class="cascade-name">{{ getProcessName(proc) }}</span>
+                      <span class="cascade-reason">
+                        {{ typeof proc === 'object' ? (proc.department || 'Business Process') : 'Business Process' }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="cascade-impact" v-if="typeof proc === 'object' && proc.criticality_level">
+                    <span class="cascade-impact-label">Criticality</span>
+                    <span
+                      class="criticality-badge"
+                      :class="getCriticalityClass(proc.criticality_level)"
+                    >
+                      {{ proc.criticality_level }} / 5
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -389,25 +383,57 @@
           <section class="content-card">
             <div class="card-header">
               <div class="header-left">
-                <div class="header-icon params">
-                  <Settings class="icon-xs" />
+                <div class="header-icon cascade-icon">
+                  <Activity class="icon-xs" />
                 </div>
                 <h2 class="card-title">Cascading Vendor Impacts</h2>
+                <span v-if="results.cascading_vendor_impacts?.length" class="count-badge danger">
+                  {{ results.cascading_vendor_impacts.length }}
+                </span>
               </div>
             </div>
             <div class="card-body">
-              <div v-if="!results.cascading_vendor_impacts || results.cascading_vendor_impacts.length === 0" class="empty-state">
-                <p>No cascading vendor impacts were found for this scenario.</p>
+              <div
+                v-if="!results.cascading_vendor_impacts || results.cascading_vendor_impacts.length === 0"
+                class="empty-state"
+              >
+                <p>No cascading vendor impacts were detected for this scenario.</p>
               </div>
               <div v-else>
-                <ul class="rec-list">
-                  <li v-for="(vendor, idx) in results.cascading_vendor_impacts" :key="idx" class="rec-item">
-                    {{ vendor }}
-                  </li>
-                </ul>
+                <!-- Total cascading impact summary bar -->
+                <div class="cascade-summary">
+                  <span class="cascade-summary-label">Total Cascading Impact</span>
+                  <span class="cascade-summary-value">
+                    {{ formatCurrency(results.total_cascading_impact) }}
+                  </span>
+                </div>
+                <div class="cascade-list">
+                  <div
+                    v-for="(vendor, idx) in results.cascading_vendor_impacts"
+                    :key="idx"
+                    class="cascade-item"
+                  >
+                    <div class="cascade-left">
+                      <div class="cascade-avatar">
+                        {{ (vendor.vendor_name || 'V').charAt(0).toUpperCase() }}
+                      </div>
+                      <div class="cascade-info">
+                        <span class="cascade-name">{{ vendor.vendor_name || 'Unknown Vendor' }}</span>
+                        <span class="cascade-reason">
+                          {{ formatCascadeReason(vendor.reason) }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="cascade-impact">
+                      <span class="cascade-impact-label">Estimated Impact</span>
+                      <span class="cascade-impact-value">{{ formatCurrency(vendor.impact) }}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
+
           <!-- Recommendations -->
           <section v-if="results.recommendations?.length" class="content-card">
             <div class="card-header">
@@ -421,6 +447,7 @@
             <div class="card-body">
               <ul class="rec-list">
                 <li v-for="(rec, idx) in results.recommendations" :key="idx" class="rec-item">
+                  <CheckCircle class="rec-check" />
                   {{ rec }}
                 </li>
               </ul>
@@ -429,15 +456,15 @@
         </template>
 
         <!-- Failed State -->
-        <div v-if="simulation.status === 'failed'" class="failed-card">
-          <AlertCircle class="failed-icon" />
+        <div v-if="simulation.status === 'failed'" class="state-card failed-card">
+          <AlertCircle class="state-icon failed-color" />
           <h3>Simulation Failed</h3>
           <p>The simulation engine encountered an error. You can retry the execution.</p>
         </div>
 
         <!-- Pending State -->
-        <div v-if="simulation.status === 'pending' && !executing" class="pending-card">
-          <Zap class="pending-icon" />
+        <div v-if="simulation.status === 'pending' && !executing" class="state-card pending-card">
+          <Zap class="state-icon pending-color" />
           <h3>Ready to Execute</h3>
           <p>Click "Execute Simulation" to run this scenario through the risk engine.</p>
         </div>
@@ -454,8 +481,7 @@
       @confirm="confirmDelete"
     >
       <template #description>
-        You are about to permanently delete <strong>{{ simulation?.name }}</strong
-        >.
+        You are about to permanently delete <strong>{{ simulation?.name }}</strong>.
       </template>
     </DeleteConfirmationModal>
 
@@ -492,7 +518,6 @@ import {
   AlertCircle,
 } from 'lucide-vue-next'
 import VChart from 'vue-echarts'
-import * as echarts from 'echarts'
 
 const route = useRoute()
 const router = useRouter()
@@ -508,69 +533,71 @@ const showParams = ref(false)
 const showDeleteModal = ref(false)
 const showWhatIfModal = ref(false)
 
+// ── Chart ──────────────────────────────────────────────────────────────────
 const financialChartOption = computed(() => {
   if (!results.value) return {}
   const data = [
-    { name: 'Direct', value: results.value.direct_costs || 0, itemStyle: { color: '#3b82f6' } },
-    { name: 'Operational', value: results.value.operational_costs || 0, itemStyle: { color: '#f59e0b' } },
-    { name: 'Regulatory', value: results.value.regulatory_costs || 0, itemStyle: { color: '#ef4444' } },
-    { name: 'Reputational', value: results.value.reputational_costs || 0, itemStyle: { color: '#8b5cf6' } },
+    { name: 'Direct',       value: Number(results.value.direct_costs)       || 0, itemStyle: { color: '#3b82f6' } },
+    { name: 'Operational',  value: Number(results.value.operational_costs)  || 0, itemStyle: { color: '#f59e0b' } },
+    { name: 'Regulatory',   value: Number(results.value.regulatory_costs)   || 0, itemStyle: { color: '#ef4444' } },
+    { name: 'Reputational', value: Number(results.value.reputational_costs) || 0, itemStyle: { color: '#8b5cf6' } },
   ]
-  
   if (results.value.total_cascading_impact && Number(results.value.total_cascading_impact) > 0) {
-    data.push({ name: 'Cascading', value: results.value.total_cascading_impact, itemStyle: { color: '#10b981' } })
+    data.push({ name: 'Cascading', value: Number(results.value.total_cascading_impact), itemStyle: { color: '#10b981' } })
   }
-
   return {
-    tooltip: { 
+    tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
       formatter: (params) => {
-        const val = params[0]
-        return `${val.name}: $${Number(val.value).toLocaleString()}`
-      }
+        const v = params[0]
+        return `${v.name}: $${Number(v.value).toLocaleString()}`
+      },
     },
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
     xAxis: { type: 'category', data: data.map(d => d.name) },
-    yAxis: { type: 'value', axisLabel: { formatter: (value) => '$' + (value >= 1000 ? (value / 1000) + 'k' : value) } },
-    series: [{ 
-      type: 'bar', 
+    yAxis: {
+      type: 'value',
+      axisLabel: {
+        formatter: (value) =>
+          value >= 1_000_000 ? '$' + (value / 1_000_000).toFixed(1) + 'M'
+          : value >= 1000 ? '$' + (value / 1000).toFixed(0) + 'K'
+          : '$' + value,
+      },
+    },
+    series: [{
+      type: 'bar',
       barWidth: '50%',
-      data: data,
-      itemStyle: { borderRadius: [4, 4, 0, 0] }
-    }]
+      data,
+      itemStyle: { borderRadius: [4, 4, 0, 0] },
+    }],
   }
 })
 
+// ── Permissions ────────────────────────────────────────────────────────────
 const isAdmin = computed(() => coreStore.permissions?.role === 'admin')
 const canExecute = computed(() => {
   const role = coreStore.permissions?.role
-  const status = simulation.value?.status
-  return (
-    ['admin', 'manager', 'analyst'].includes(role) && (status === 'pending' || status === 'failed')
-  )
+  const s = simulation.value?.status
+  return ['admin', 'manager', 'analyst'].includes(role) && (s === 'pending' || s === 'failed')
 })
 
+// ── Data loading ───────────────────────────────────────────────────────────
 const loadSimulation = async () => {
   loading.value = true
   error.value = null
   try {
     const id = route.params.id
     simulation.value = await simulationStore.fetchSimulation(id)
-    // If completed, load results
-    // If completed, load results
     if (simulation.value?.status === 'completed') {
       try {
         if (simulation.value.result) {
-          console.log('Using embedded results:', simulation.value.result)
           results.value = simulation.value.result
         } else {
-          console.log('Fetching separate results...')
           results.value = await simulationStore.fetchSimulationResults(id)
         }
       } catch (err) {
         console.error('Error loading results:', err)
-        // Fallback to whatever might be there
         results.value = simulation.value.result || simulation.value.results || null
       }
     }
@@ -584,8 +611,7 @@ const loadSimulation = async () => {
 const executeSimulation = async () => {
   executing.value = true
   try {
-    const response = await simulationStore.executeSimulation(route.params.id)
-    // Refresh simulation data
+    await simulationStore.executeSimulation(route.params.id)
     await loadSimulation()
   } catch {
     // Handled by store toast
@@ -602,25 +628,41 @@ const confirmDelete = async () => {
 
 const handleWhatIfComplete = (newSimulation) => {
   showWhatIfModal.value = false
-  // Navigate to the new clone
-  router.push(`/simulations/${newSimulation.id}`)
+  router.push({
+    path: '/simulations/compare',
+    query: { id: [simulation.value.id, newSimulation.id] },
+  })
 }
 
+// ── PDF download ───────────────────────────────────────────────────────────
+const downloadPDF = async () => {
+  try {
+    const simulationId = route.params.id
+    const response = await api.get(`/simulations/${simulationId}/report/`, { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `scenarioforge_report_${simulationId}.pdf`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error('PDF download failed:', err)
+  }
+}
+
+// ── Formatters ─────────────────────────────────────────────────────────────
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
 const formatNumber = (num) => {
   if (num === null || num === undefined) return '0'
   const value = Number(num)
   if (isNaN(value)) return '0'
-
-  if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M'
+  if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + 'M'
   if (value >= 1000) return (value / 1000).toFixed(1) + 'K'
   return value.toLocaleString()
 }
@@ -628,7 +670,7 @@ const formatNumber = (num) => {
 const formatCurrency = (value) => {
   if (!value && value !== 0) return '$0'
   const num = parseFloat(value)
-  if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`
+  if (num >= 1_000_000) return `$${(num / 1_000_000).toFixed(1)}M`
   if (num >= 1000) return `$${(num / 1000).toFixed(1)}K`
   return `$${num.toFixed(2)}`
 }
@@ -638,29 +680,8 @@ const formatHours = (hours) => {
   return `${parseFloat(hours).toFixed(1)}h`
 }
 
-const downloadPDF = async () => {
-  try {
-    const simulationId = route.params.id
-    const response = await api.get(
-      `/simulations/${simulationId}/report/pdf/`,
-      { responseType: 'blob' }
-    )
-    const url = window.URL.createObjectURL(new Blob([response.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `scenarioforge_report_${simulationId}.pdf`)
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.URL.revokeObjectURL(url)
-  } catch (error) {
-    console.error('PDF download failed:', error)
-  }
-}
-
-const formatKey = (key) => {
-  return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-}
+const formatKey = (key) =>
+  key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
 const formatParamValue = (val) => {
   if (typeof val === 'boolean') return val ? 'Yes' : 'No'
@@ -669,6 +690,17 @@ const formatParamValue = (val) => {
   return val
 }
 
+/**
+ * Format the cascade reason field into human-readable text.
+ * e.g. "dependency_level_1" → "Dependency Level 1"
+ *      "upstream_failure"   → "Upstream Failure"
+ */
+const formatCascadeReason = (reason) => {
+  if (!reason) return 'Cascading Failure'
+  return reason.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+// ── Risk helpers ───────────────────────────────────────────────────────────
 const getRiskClass = (score) => {
   if (score >= 80) return 'critical'
   if (score >= 60) return 'high'
@@ -676,10 +708,37 @@ const getRiskClass = (score) => {
   return 'low'
 }
 
+const getCriticalityClass = (level) => {
+  if (level >= 5) return 'crit-5'
+  if (level >= 4) return 'crit-4'
+  if (level >= 3) return 'crit-3'
+  return 'crit-low'
+}
+
+// ── Process helpers ────────────────────────────────────────────────────────
+/**
+ * Handle both shapes:
+ *  - object  { id, name, department, criticality_level }
+ *  - string  UUID — display shortened until serializer is updated
+ */
+const getProcessName = (proc) => {
+  if (typeof proc === 'object' && proc !== null) return proc.name || 'Unknown Process'
+  if (typeof proc === 'string') {
+    // UUID string — shorten for display
+    return `Process ${proc.slice(0, 8)}…`
+  }
+  return 'Unknown Process'
+}
+
+const getProcessInitial = (proc) => {
+  const name = getProcessName(proc)
+  return name.charAt(0).toUpperCase()
+}
+
+// ── Monte Carlo helpers ────────────────────────────────────────────────────
 const getPercentileWidth = (value) => {
   if (!results.value?.monte_carlo_results?.max) return 0
-  const max = results.value.monte_carlo_results.max
-  return Math.min((value / max) * 100, 100)
+  return Math.min((value / results.value.monte_carlo_results.max) * 100, 100)
 }
 
 onMounted(loadSimulation)
@@ -696,7 +755,7 @@ onMounted(loadSimulation)
   padding: 0 24px 100px;
 }
 
-/* Loading / Error */
+/* ── Loading / Error ─────────────────────────────────────────────────────── */
 .loading-zone {
   display: flex;
   justify-content: center;
@@ -718,7 +777,7 @@ onMounted(loadSimulation)
   margin: 0 0 24px;
 }
 
-/* Header */
+/* ── Header ──────────────────────────────────────────────────────────────── */
 .page-header {
   padding: 48px 0 40px;
   animation: fadeIn 0.5s ease-out;
@@ -737,18 +796,14 @@ onMounted(loadSimulation)
   margin-bottom: 20px;
   transition: color 0.2s;
 }
-.back-btn:hover {
-  color: #7c3aed;
-}
+.back-btn:hover { color: #7c3aed; }
 .header-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 32px;
 }
-.header-text {
-  flex: 1;
-}
+.header-text { flex: 1; }
 .header-badges {
   display: flex;
   align-items: center;
@@ -769,10 +824,7 @@ onMounted(loadSimulation)
   letter-spacing: 0.08em;
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
 }
-.badge-icon {
-  width: 14px;
-  height: 14px;
-}
+.badge-icon { width: 14px; height: 14px; }
 .status-pill {
   display: flex;
   align-items: center;
@@ -783,25 +835,12 @@ onMounted(loadSimulation)
   font-weight: 700;
   text-transform: capitalize;
 }
-.status-pill.pending {
-  background: #f1f5f9;
-  color: #64748b;
-}
-.status-pill.running {
-  background: #eff6ff;
-  color: #3b82f6;
-}
-.status-pill.completed {
-  background: #ecfdf5;
-  color: #059669;
-}
-.status-pill.failed {
-  background: #fef2f2;
-  color: #dc2626;
-}
+.status-pill.pending  { background: #f1f5f9; color: #64748b; }
+.status-pill.running  { background: #eff6ff; color: #3b82f6; }
+.status-pill.completed{ background: #ecfdf5; color: #059669; }
+.status-pill.failed   { background: #fef2f2; color: #dc2626; }
 .status-pulse {
-  width: 8px;
-  height: 8px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: #3b82f6;
   animation: pulseDot 1.5s ease-in-out infinite;
@@ -820,16 +859,16 @@ onMounted(loadSimulation)
   font-weight: 500;
   margin: 0;
 }
-.page-subtitle strong {
-  color: #334155;
-}
+.page-subtitle strong { color: #334155; }
 .header-actions {
   display: flex;
   gap: 12px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-/* Buttons */
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -841,13 +880,9 @@ onMounted(loadSimulation)
   cursor: pointer;
   transition: all 0.2s;
   border: none;
-  text-decoration: none;
   white-space: nowrap;
 }
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary {
   background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   color: white;
@@ -857,56 +892,29 @@ onMounted(loadSimulation)
   box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
   transform: translateY(-2px);
 }
-.btn-secondary {
-  background: white;
-  color: #475569;
-  border: 2px solid #e2e8f0;
-}
-.btn-danger {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 2px solid #fecaca;
-}
-.btn-danger:hover {
-  background: #fee2e2;
-}
-.icon-sm {
-  width: 18px;
-  height: 18px;
-}
-.icon-xs {
-  width: 16px;
-  height: 16px;
-}
+.btn-secondary { background: white; color: #475569; border: 2px solid #e2e8f0; }
+.btn-danger    { background: #fef2f2; color: #dc2626; border: 2px solid #fecaca; }
+.btn-danger:hover { background: #fee2e2; }
+.icon-sm { width: 18px; height: 18px; }
+.icon-xs { width: 16px; height: 16px; }
 
-/* Tags and Empty states */
+/* ── Tags / empty states ─────────────────────────────────────────────────── */
 .empty-state {
-  padding: 16px;
+  padding: 24px;
   background: #f8fafc;
   border-radius: 12px;
   border: 1px dashed #cbd5e1;
   text-align: center;
 }
-.empty-state p {
-  color: #64748b;
-  font-size: 14px;
-  margin: 0;
-}
-.tags-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+.empty-state p { color: #64748b; font-size: 14px; margin: 0; line-height: 1.6; }
+.tags-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .tag-item {
-  background: #e2e8f0;
-  color: #334155;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
+  background: #e2e8f0; color: #334155;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
 }
 
-/* Description Card */
+/* ── Description card ───────────────────────────────────────────────────── */
 .desc-card {
   background: white;
   border: 2px solid #e2e8f0;
@@ -914,14 +922,9 @@ onMounted(loadSimulation)
   padding: 24px 32px;
   margin-bottom: 32px;
 }
-.desc-text {
-  font-size: 15px;
-  color: #475569;
-  line-height: 1.6;
-  margin: 0;
-}
+.desc-text { font-size: 15px; color: #475569; line-height: 1.6; margin: 0; }
 
-/* Execution Progress */
+/* ── Execution progress ──────────────────────────────────────────────────── */
 .exec-card {
   background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   border-radius: 24px;
@@ -929,46 +932,24 @@ onMounted(loadSimulation)
   margin-bottom: 32px;
   animation: fadeIn 0.5s ease-out;
 }
-.exec-inner {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-bottom: 32px;
-}
+.exec-inner { display: flex; align-items: center; gap: 24px; margin-bottom: 32px; }
 .exec-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
+  width: 48px; height: 48px;
+  border: 4px solid rgba(255,255,255,0.3);
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   flex-shrink: 0;
 }
-.exec-text h3 {
-  font-size: 22px;
-  font-weight: 900;
-  color: white;
-  margin: 0 0 8px;
-}
-.exec-text p {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
-}
-.exec-bar {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-  overflow: hidden;
-}
+.exec-text h3 { font-size: 22px; font-weight: 900; color: white; margin: 0 0 8px; }
+.exec-text p  { font-size: 14px; color: rgba(255,255,255,0.8); margin: 0; }
+.exec-bar { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
 .exec-bar-fill {
-  height: 100%;
-  background: white;
-  border-radius: 3px;
+  height: 100%; background: white; border-radius: 3px;
   animation: progress 3s ease-in-out infinite;
 }
 
-/* Content Cards */
+/* ── Content cards ───────────────────────────────────────────────────────── */
 .content-card {
   background: white;
   border-radius: 32px;
@@ -978,10 +959,7 @@ onMounted(loadSimulation)
   transition: all 0.3s;
   animation: fadeIn 0.5s ease-out;
 }
-.content-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-}
+.content-card:hover { border-color: #cbd5e1; box-shadow: 0 8px 24px rgba(0,0,0,0.04); }
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -989,413 +967,211 @@ onMounted(loadSimulation)
   padding: 28px 32px;
   border-bottom: 2px solid #f1f5f9;
 }
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
+.header-left { display: flex; align-items: center; gap: 14px; }
 .header-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  width: 44px; height: 44px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.header-icon.params {
-  background: #f1f5f9;
-  color: #64748b;
-}
-.header-icon.impact {
-  background: #fff7ed;
-  color: #f97316;
-}
-.header-icon.metrics {
-  background: #eff6ff;
-  color: #3b82f6;
-}
-.header-icon.mc {
-  background: #f3e8ff;
-  color: #7c3aed;
-}
-.header-icon.recs {
-  background: #ecfdf5;
-  color: #10b981;
-}
-.card-title {
-  font-size: 20px;
-  font-weight: 900;
-  color: #0f172a;
-  margin: 0;
-}
-.toggle-link {
-  background: none;
-  border: none;
-  color: #7c3aed;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.card-body {
-  padding: 32px;
-}
+.header-icon.params       { background: #f1f5f9; color: #64748b; }
+.header-icon.impact       { background: #fff7ed; color: #f97316; }
+.header-icon.metrics      { background: #eff6ff; color: #3b82f6; }
+.header-icon.mc           { background: #f3e8ff; color: #7c3aed; }
+.header-icon.recs         { background: #ecfdf5; color: #10b981; }
+.header-icon.process-icon { background: #f0fdf4; color: #059669; }
+.header-icon.cascade-icon { background: #fff1f2; color: #e11d48; }
 
-/* Parameters */
+.card-title { font-size: 20px; font-weight: 900; color: #0f172a; margin: 0; }
+.count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 24px;
+  background: #f1f5f9; color: #475569;
+  border-radius: 99px; font-size: 12px; font-weight: 800;
+  padding: 0 8px;
+}
+.count-badge.danger { background: #fee2e2; color: #dc2626; }
+.toggle-link {
+  background: none; border: none; color: #7c3aed;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.card-body { padding: 32px; }
+
+/* ── Parameters ──────────────────────────────────────────────────────────── */
 .params-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 20px;
 }
-.param-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.param-label {
-  font-size: 11px;
-  font-weight: 900;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.param-value {
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f172a;
-}
+.param-item  { display: flex; flex-direction: column; gap: 4px; }
+.param-label { font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+.param-value { font-size: 15px; font-weight: 700; color: #0f172a; }
 
-/* Impact */
+/* ── Financial impact ────────────────────────────────────────────────────── */
 .impact-hero {
-  text-align: center;
-  padding: 20px 0 32px;
-  border-bottom: 2px solid #f1f5f9;
-  margin-bottom: 28px;
+  text-align: center; padding: 20px 0 32px;
+  border-bottom: 2px solid #f1f5f9; margin-bottom: 28px;
 }
 .impact-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 900;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 8px;
+  display: block; font-size: 12px; font-weight: 900; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
 }
-.impact-value {
-  font-size: 52px;
-  font-weight: 900;
-  color: #ef4444;
-  letter-spacing: -0.03em;
-}
-.impact-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-}
+.impact-value { font-size: 52px; font-weight: 900; color: #ef4444; letter-spacing: -0.03em; }
+.impact-grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
 .impact-category {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  background: #f8fafc;
-  border-radius: 16px;
+  display: flex; align-items: center; gap: 16px;
+  padding: 20px; background: #f8fafc; border-radius: 16px;
 }
-.category-color {
-  width: 6px;
-  height: 48px;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-.category-color.direct {
-  background: #ef4444;
-}
-.category-color.operational {
-  background: #f97316;
-}
-.category-color.regulatory {
-  background: #f59e0b;
-}
-.category-color.reputational {
-  background: #8b5cf6;
-}
-.category-color.cascading {
-  background: #ec4899;
-}
-.category-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.category-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748b;
-}
-.category-value {
-  font-size: 20px;
-  font-weight: 900;
-  color: #0f172a;
-}
+.category-color { width: 6px; height: 48px; border-radius: 3px; flex-shrink: 0; }
+.category-color.direct       { background: #ef4444; }
+.category-color.operational  { background: #f97316; }
+.category-color.regulatory   { background: #f59e0b; }
+.category-color.reputational { background: #8b5cf6; }
+.category-color.cascading    { background: #ec4899; }
+.category-info { display: flex; flex-direction: column; gap: 4px; }
+.category-label { font-size: 12px; font-weight: 700; color: #64748b; }
+.category-value { font-size: 20px; font-weight: 900; color: #0f172a; }
 
-/* Metrics */
+/* ── Metrics ─────────────────────────────────────────────────────────────── */
 .metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
 }
-.metric-card {
-  text-align: center;
-  padding: 24px;
-  background: #f8fafc;
-  border-radius: 20px;
-}
+.metric-card { text-align: center; padding: 24px; background: #f8fafc; border-radius: 20px; }
 .metric-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 900;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 12px;
+  display: block; font-size: 11px; font-weight: 900; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
 }
-.metric-value {
-  font-size: 32px;
-  font-weight: 900;
-  color: #0f172a;
-}
-.metric-value.risk.critical {
-  color: #ef4444;
-}
-.metric-value.risk.high {
-  color: #f97316;
-}
-.metric-value.risk.medium {
-  color: #f59e0b;
-}
-.metric-value.risk.low {
-  color: #10b981;
-}
+.metric-value { font-size: 32px; font-weight: 900; color: #0f172a; }
+.metric-value.risk.critical { color: #ef4444; }
+.metric-value.risk.high     { color: #f97316; }
+.metric-value.risk.medium   { color: #f59e0b; }
+.metric-value.risk.low      { color: #10b981; }
 
-/* Monte Carlo */
+/* ── Monte Carlo ─────────────────────────────────────────────────────────── */
 .mc-iterations {
-  font-size: 13px;
-  font-weight: 700;
-  color: #7c3aed;
-  background: #f3e8ff;
-  padding: 6px 14px;
-  border-radius: 10px;
+  font-size: 13px; font-weight: 700; color: #7c3aed;
+  background: #f3e8ff; padding: 6px 14px; border-radius: 10px;
 }
 .mc-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px; margin-bottom: 32px;
 }
-.mc-stat {
-  text-align: center;
-  padding: 20px;
-  background: #faf5ff;
-  border-radius: 16px;
-}
+.mc-stat { text-align: center; padding: 20px; background: #faf5ff; border-radius: 16px; }
 .mc-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 900;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 8px;
+  display: block; font-size: 11px; font-weight: 900; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
 }
-.mc-value {
-  font-size: 20px;
-  font-weight: 900;
-  color: #7c3aed;
+.mc-value { font-size: 20px; font-weight: 900; color: #7c3aed; }
+.percentiles-section { margin-bottom: 32px; }
+.percentile-title, .ci-title {
+  font-size: 14px; font-weight: 900; color: #64748b;
+  text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 16px;
 }
+.percentile-bar-container { display: flex; flex-direction: column; gap: 12px; }
+.percentile-item { display: grid; grid-template-columns: 50px 1fr 120px; align-items: center; gap: 16px; }
+.pct-label { font-size: 13px; font-weight: 800; color: #475569; }
+.pct-bar-wrapper { height: 10px; background: #f1f5f9; border-radius: 5px; overflow: hidden; }
+.pct-bar { height: 100%; background: linear-gradient(to right, #7c3aed, #a78bfa); border-radius: 5px; transition: width 0.6s ease; }
+.pct-value { font-size: 14px; font-weight: 700; color: #0f172a; text-align: right; }
+.ci-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.ci-item { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px; background: #f8fafc; border-radius: 14px; }
+.ci-level { font-size: 12px; font-weight: 900; color: #7c3aed; text-transform: uppercase; }
+.ci-range { font-size: 15px; font-weight: 700; color: #0f172a; }
 
-/* Percentiles */
-.percentiles-section {
-  margin-bottom: 32px;
-}
-.percentile-title,
-.ci-title {
-  font-size: 14px;
-  font-weight: 900;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin: 0 0 16px;
-}
-.percentile-bar-container {
+/* ── Cascade / Process list ──────────────────────────────────────────────── */
+.cascade-summary {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.percentile-item {
-  display: grid;
-  grid-template-columns: 50px 1fr 120px;
+  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-}
-.pct-label {
-  font-size: 13px;
-  font-weight: 800;
-  color: #475569;
-}
-.pct-bar-wrapper {
-  height: 10px;
-  background: #f1f5f9;
-  border-radius: 5px;
-  overflow: hidden;
-}
-.pct-bar {
-  height: 100%;
-  background: linear-gradient(to right, #7c3aed, #a78bfa);
-  border-radius: 5px;
-  transition: width 0.6s ease;
-}
-.pct-value {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0f172a;
-  text-align: right;
-}
-
-/* Confidence Intervals */
-.ci-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 16px;
-}
-.ci-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 14px;
   padding: 16px 20px;
-  background: #f8fafc;
-  border-radius: 14px;
+  margin-bottom: 20px;
 }
-.ci-level {
-  font-size: 12px;
-  font-weight: 900;
-  color: #7c3aed;
-  text-transform: uppercase;
-}
-.ci-range {
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f172a;
-}
+.cascade-summary-label { font-size: 13px; font-weight: 700; color: #9f1239; }
+.cascade-summary-value { font-size: 20px; font-weight: 900; color: #e11d48; }
 
-/* Recommendations */
-.rec-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.cascade-list { display: flex; flex-direction: column; gap: 12px; }
+.cascade-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; background: #f8fafc;
+  border-radius: 16px; border: 1px solid #e2e8f0;
+  transition: border-color 0.2s;
 }
+.cascade-item:hover { border-color: #cbd5e1; }
+.cascade-left  { display: flex; align-items: center; gap: 14px; }
+.cascade-avatar {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white; font-size: 18px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.cascade-avatar.process-avatar {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+.cascade-info  { display: flex; flex-direction: column; gap: 3px; }
+.cascade-name  { font-size: 15px; font-weight: 800; color: #0f172a; }
+.cascade-reason { font-size: 12px; font-weight: 600; color: #94a3b8; }
+.cascade-impact { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.cascade-impact-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; }
+.cascade-impact-value { font-size: 20px; font-weight: 900; color: #ef4444; }
+
+.criticality-badge {
+  padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 800;
+}
+.criticality-badge.crit-5 { background: #fee2e2; color: #b91c1c; }
+.criticality-badge.crit-4 { background: #fef3c7; color: #92400e; }
+.criticality-badge.crit-3 { background: #fef9c3; color: #854d0e; }
+.criticality-badge.crit-low { background: #d1fae5; color: #065f46; }
+
+/* ── Recommendations ─────────────────────────────────────────────────────── */
+.rec-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
 .rec-item {
-  padding: 16px 24px;
-  background: #f0fdf4;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #166534;
-  line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 16px 20px; background: #f0fdf4; border-radius: 14px;
+  font-size: 14px; font-weight: 600; color: #166534; line-height: 1.5;
   border-left: 4px solid #10b981;
 }
+.rec-check { width: 16px; height: 16px; color: #10b981; flex-shrink: 0; margin-top: 2px; }
 
-/* Pending / Failed States */
-.pending-card,
-.failed-card {
-  text-align: center;
-  padding: 80px 40px;
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 32px;
-  margin-bottom: 32px;
+/* ── Pending / Failed states ─────────────────────────────────────────────── */
+.state-card {
+  text-align: center; padding: 80px 40px;
+  background: white; border: 2px solid #e2e8f0;
+  border-radius: 32px; margin-bottom: 32px;
 }
-.pending-icon {
-  width: 60px;
-  height: 60px;
-  color: #7c3aed;
-  margin: 0 auto 20px;
-}
-.failed-icon {
-  width: 60px;
-  height: 60px;
-  color: #ef4444;
-  margin: 0 auto 20px;
-}
-.pending-card h3,
-.failed-card h3 {
-  font-size: 24px;
-  font-weight: 900;
-  color: #0f172a;
-  margin: 0 0 12px;
-}
-.pending-card p,
-.failed-card p {
-  font-size: 15px;
-  color: #64748b;
-  margin: 0;
-}
+.state-icon { width: 60px; height: 60px; margin: 0 auto 20px; }
+.pending-color { color: #7c3aed; }
+.failed-color  { color: #ef4444; }
+.state-card h3 { font-size: 24px; font-weight: 900; color: #0f172a; margin: 0 0 12px; }
+.state-card p  { font-size: 15px; color: #64748b; margin: 0; }
 
-/* Animations */
+/* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 @keyframes progress {
-  0% {
-    width: 0%;
-  }
-  50% {
-    width: 70%;
-  }
-  100% {
-    width: 100%;
-  }
+  0%   { width: 0%; }
+  50%  { width: 70%; }
+  100% { width: 100%; }
 }
 @keyframes pulseDot {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  50%       { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
 }
 
+/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .page-title {
-    font-size: 28px;
-  }
-  .header-row {
-    flex-direction: column;
-  }
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .impact-grid {
-    grid-template-columns: 1fr;
-  }
-  .impact-value {
-    font-size: 36px;
-  }
+  .page-title    { font-size: 28px; }
+  .header-row    { flex-direction: column; }
+  .metrics-grid  { grid-template-columns: repeat(2, 1fr); }
+  .impact-grid   { grid-template-columns: 1fr; }
+  .impact-value  { font-size: 36px; }
+  .cascade-item  { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .cascade-impact { align-items: flex-start; }
 }
 </style>

@@ -1,4 +1,5 @@
 import api from './api'
+import { useAuthStore } from '../stores/auth'
 
 export default {
   // Register new user
@@ -11,7 +12,7 @@ export default {
   async login(credentials) {
     const response = await api.post('/auth/login/', credentials)
     if (response.data.access) {
-      localStorage.setItem('access_token', response.data.access)
+      useAuthStore().setAccessToken(response.data.access)
       localStorage.setItem('refresh_token', response.data.refresh)
       localStorage.setItem('user', JSON.stringify(response.data.user))
     }
@@ -26,7 +27,7 @@ export default {
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
-      localStorage.removeItem('access_token')
+      useAuthStore().clearAccessToken()
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
     }
@@ -70,7 +71,7 @@ export default {
       new_password: newPassword,
     })
     if (response.data.access) {
-      localStorage.setItem('access_token', response.data.access)
+      useAuthStore().setAccessToken(response.data.access)
       localStorage.setItem('refresh_token', response.data.refresh)
     }
     return response.data
@@ -85,7 +86,7 @@ export default {
 
   // Check if user is authenticated
   isAuthenticated() {
-    return !!localStorage.getItem('access_token')
+    return !!useAuthStore().accessToken
   },
 
   // Get current user from localStorage

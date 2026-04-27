@@ -176,7 +176,14 @@ const handleRegister = async () => {
   if (!validateForm()) return
 
   try {
-    await authStore.register(formData.value)
+    const result = await authStore.register(formData.value)
+    if (result && result.fieldErrors) {
+      Object.keys(result.fieldErrors).forEach(key => {
+        const val = result.fieldErrors[key]
+        errors.value[key] = Array.isArray(val) ? val[0] : val
+      })
+      return
+    }
     router.push('/login')
   } catch (error) {
     console.error('Registration failed:', error)

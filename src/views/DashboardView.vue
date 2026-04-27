@@ -161,8 +161,9 @@
                   <div class="simulation-info">
                     <div class="simulation-type">
                       <span class="type-badge">{{ sim.scenario_type.replace('_', ' ') }}</span>
-                    </div>
+                    </div><!-- ✅ closed .simulation-type -->
                     <div class="simulation-details">
+                      <router-link :to="`/simulations/${sim.id}`" class="sim-name-link">{{ sim.name }}</router-link>
                       <span class="sim-date">{{ formatDate(sim.completed_at) }}</span>
                     </div>
                   </div>
@@ -176,7 +177,66 @@
               </div>
             </div>
           </section>
-        </div>
+        </div><!-- ✅ closed .main-grid -->
+
+        <!-- Simulation Overview -->
+        <section v-if="simulationSummary" class="content-card mb-8">
+          <div class="card-header">
+            <div class="header-left">
+              <div class="header-icon primary">
+                <Zap class="icon-xs" />
+              </div>
+              <h2 class="card-title">Simulation Overview</h2>
+            </div>
+            <router-link to="/simulations/summary" class="card-link">
+              Full Report
+              <span class="arrow">→</span>
+            </router-link>
+          </div>
+          <div class="card-body">
+            <div class="metrics-row">
+              <div class="metric-box">
+                <span class="m-label">Total Simulations</span>
+                <span class="m-val">{{ simulationSummary.total_simulations }}</span>
+              </div>
+              <div class="metric-box">
+                <span class="m-label">Completed</span>
+                <span class="m-val success">{{ simulationSummary.completed_simulations }}</span>
+              </div>
+              <div class="metric-box">
+                <span class="m-label">Pending</span>
+                <span class="m-val warning">{{ simulationSummary.pending_simulations }}</span>
+              </div>
+              <div class="metric-box">
+                <span class="m-label">Failed</span>
+                <span class="m-val danger">{{ simulationSummary.failed_simulations }}</span>
+              </div>
+              <div class="metric-box">
+                <span class="m-label">Total Estimated Impact</span>
+                <span class="m-val impact">${{ formatNumber(Number(simulationSummary.total_estimated_impact) || 0) }}</span>
+              </div>
+              <div class="metric-box">
+                <span class="m-label">Average Recovery Time</span>
+                <span class="m-val">{{ Number(simulationSummary.average_recovery_time || 0).toFixed(1) }}h</span>
+              </div>
+            </div>
+
+            <div class="charts-row">
+              <div class="chart-box">
+                <h3 class="chart-title">By Scenario Type</h3>
+                <div class="chart-container">
+                  <v-chart class="chart" :option="chartOptionScenario" autoresize />
+                </div>
+              </div>
+              <div class="chart-box">
+                <h3 class="chart-title">By Target Vendor</h3>
+                <div class="chart-container">
+                  <v-chart class="chart" :option="chartOptionVendor" autoresize />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <!-- Strategic Shortcuts -->
         <div class="shortcuts-section">
@@ -190,6 +250,13 @@
               <div class="shortcut-content">
                 <span class="shortcut-label">Onboard Entity</span>
                 <span class="shortcut-description">Add new vendor to ecosystem</span>
+              </div>
+            </router-link>
+            <router-link to="/risk-heatmap" class="shortcut-card">
+              <div class="shortcut-icon">🌐</div>
+              <div class="shortcut-content">
+                <span class="shortcut-label">Risk Heatmap</span>
+                <span class="shortcut-description">Visualize vendor portfolio metrics</span>
               </div>
             </router-link>
             <router-link to="/simulations/new" class="shortcut-card">
@@ -215,8 +282,8 @@
             </router-link>
           </div>
         </div>
-      </div>
-    </div>
+      </div><!-- ✅ closed .dashboard-content (v-else-if) -->
+    </div><!-- ✅ closed .container -->
 
     <!-- Modals -->
     <CreateOrganizationModal
@@ -230,12 +297,13 @@
       @joined="handleOrgCreated"
       @requested="handleJoinRequested"
     />
-  </div>
+  </div><!-- ✅ closed .page-container -->
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useCoreStore } from '../stores/core'
+import { useSimulationStore } from '../stores/simulation'
 import NavBar from '../components/common/NavBar.vue'
 import CreateOrganizationModal from '../components/core/CreateOrganizationModal.vue'
 import JoinOrganizationModal from '../components/core/JoinOrganizationModal.vue'
@@ -253,8 +321,10 @@ import VChart from 'vue-echarts'
 import * as echarts from 'echarts'
 
 const coreStore = useCoreStore()
+const simulationStore = useSimulationStore()
 const dashboardData = ref(null)
 const orgStats = ref(null)
+const simulationSummary = computed(() => simulationStore.simulationSummary)
 const showOrgModal = ref(false)
 const showJoinModal = ref(false)
 
@@ -267,8 +337,8 @@ const canManageEntities = computed(() =>
 const stats = computed(() => [
   {
     label: 'Risk Velocity',
-    value: (dashboardData.value?.avg_resilience_score || 0).toFixed(1),
-    class: getRiskClass(dashboardData.value?.avg_resilience_score),
+    value: (dashboardData.value?.average_risk_score || 0).toFixed(1),
+    class: getRiskClass(dashboardData.value?.average_risk_score),
     icon: Activity,
     bg: '#eff6ff',
     color: '#3b82f6',
@@ -284,15 +354,15 @@ const stats = computed(() => [
   },
   {
     label: 'Global Exposure',
-    value: `$${formatNumber(dashboardData.value?.total_financial_exposure || 0)}`,
+    value: `$${formatNumber(dashboardData.value?.total_estimated_impact || 0)}`,
     class: 'medium',
     icon: DollarSign,
     bg: '#fff7ed',
     color: '#f97316',
   },
   {
-    label: 'Recent Uplift',
-    value: `${(dashboardData.value?.avg_security_uplift || 0).toFixed(1)}%`,
+    label: 'Active Vendors',
+    value: dashboardData.value?.active_vendors || 0,
     class: 'low',
     icon: TrendingUp,
     bg: '#ecfdf5',
@@ -303,16 +373,24 @@ const stats = computed(() => [
 const loadDashboard = async () => {
   if (hasOrganization.value) {
     try {
-      // Try using fetchDashboard if it exists, otherwise fetchDashboardData
       if (typeof coreStore.fetchDashboard === 'function') {
         await coreStore.fetchDashboard()
-        dashboardData.value = coreStore.dashboardData
+        const raw = coreStore.dashboardData
+        dashboardData.value = {
+          ...raw,
+          ...(raw?.summary || {}),
+        }
       } else if (typeof coreStore.fetchDashboardData === 'function') {
-        dashboardData.value = await coreStore.fetchDashboardData()
+        const raw = await coreStore.fetchDashboardData()
+        dashboardData.value = { ...raw, ...(raw?.summary || {})}
       }
-      
+
       if (typeof coreStore.fetchOrganizationStats === 'function') {
         orgStats.value = await coreStore.fetchOrganizationStats()
+      }
+
+      if (typeof simulationStore.fetchSimulationSummary === 'function') {
+        await simulationStore.fetchSimulationSummary()
       }
     } catch (error) {
       console.error('Failed to load dashboard:', error)
@@ -323,7 +401,7 @@ const loadDashboard = async () => {
 const chartOption = computed(() => {
   if (!orgStats.value?.vendors_by_risk_level) return {}
   const data = orgStats.value.vendors_by_risk_level
-  
+
   return {
     tooltip: { trigger: 'item' },
     legend: { top: 'bottom' },
@@ -349,11 +427,32 @@ const chartOption = computed(() => {
   }
 })
 
+const chartOptionScenario = computed(() => {
+  if (!simulationSummary.value?.by_scenario_type) return {}
+  const data = Object.entries(simulationSummary.value.by_scenario_type)
+  return {
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    xAxis: { type: 'category', data: data.map(d => d[0].replace(/_/g, ' ')), axisLabel: { interval: 0, rotate: 30 } },
+    yAxis: { type: 'value' },
+    series: [{ type: 'bar', data: data.map(d => d[1]), itemStyle: { color: '#3b82f6' } }]
+  }
+})
+
+const chartOptionVendor = computed(() => {
+  if (!simulationSummary.value?.by_vendor) return {}
+  const data = Object.entries(simulationSummary.value.by_vendor)
+  return {
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    xAxis: { type: 'category', data: data.map(d => d[0]), axisLabel: { interval: 0, rotate: 30 } },
+    yAxis: { type: 'value' },
+    series: [{ type: 'bar', data: data.map(d => d[1]), itemStyle: { color: '#f59e0b' } }]
+  }
+})
+
 const handleOrgCreated = async () => {
   showOrgModal.value = false
   showJoinModal.value = false
 
-  // Refresh organization and user data
   if (typeof coreStore.fetchOrganization === 'function') {
     await coreStore.fetchOrganization()
   }
@@ -391,7 +490,6 @@ const formatNumber = (num) => {
 }
 
 onMounted(async () => {
-  // Fetch current user and permissions
   if (typeof coreStore.fetchCurrentUser === 'function') {
     await coreStore.fetchCurrentUser()
   }
@@ -399,16 +497,14 @@ onMounted(async () => {
     await coreStore.fetchPermissions()
   }
 
-  // Try to fetch organization
   try {
     if (typeof coreStore.fetchOrganization === 'function') {
       await coreStore.fetchOrganization()
     }
   } catch (error) {
-    console.log('No organization found')
+    if (import.meta.env.DEV) console.log('No organization found')
   }
 
-  // Load dashboard data if organization exists
   await loadDashboard()
 })
 </script>
@@ -441,6 +537,71 @@ onMounted(async () => {
 
 .header-text {
   flex: 1;
+}
+
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.metric-box {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.m-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.m-val {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+}
+.m-val.success { color: #10b981; }
+.m-val.warning { color: #f59e0b; }
+.m-val.danger { color: #ef4444; }
+.m-val.impact { color: #3b82f6; }
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 900px) {
+  .charts-row { grid-template-columns: 1fr; }
+}
+.chart-box {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+}
+.chart-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 16px;
+}
+.chart-container {
+  height: 250px;
+}
+.mb-8 { margin-bottom: 32px; }
+.sim-name-link {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  text-decoration: none;
+}
+.sim-name-link:hover {
+  text-decoration: underline;
+  color: #3b82f6;
 }
 
 .header-badge {
@@ -689,18 +850,10 @@ onMounted(async () => {
   letter-spacing: -0.02em;
 }
 
-.stat-value.critical {
-  color: #ef4444;
-}
-.stat-value.high {
-  color: #f97316;
-}
-.stat-value.medium {
-  color: #f59e0b;
-}
-.stat-value.low {
-  color: #10b981;
-}
+.stat-value.critical { color: #ef4444; }
+.stat-value.high { color: #f97316; }
+.stat-value.medium { color: #f59e0b; }
+.stat-value.low { color: #10b981; }
 
 .stat-subtitle {
   display: flex;
@@ -722,12 +875,8 @@ onMounted(async () => {
 
 @keyframes pulseDot {
   0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
-  }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  50% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
 }
 
 /* Main Grid */
@@ -921,22 +1070,10 @@ onMounted(async () => {
   letter-spacing: -0.01em;
 }
 
-.risk-badge.critical {
-  background: #fee2e2;
-  color: #991b1b;
-}
-.risk-badge.high {
-  background: #fed7aa;
-  color: #9a3412;
-}
-.risk-badge.medium {
-  background: #fef3c7;
-  color: #92400e;
-}
-.risk-badge.low {
-  background: #d1fae5;
-  color: #065f46;
-}
+.risk-badge.critical { background: #fee2e2; color: #991b1b; }
+.risk-badge.high { background: #fed7aa; color: #9a3412; }
+.risk-badge.medium { background: #fef3c7; color: #92400e; }
+.risk-badge.low { background: #d1fae5; color: #065f46; }
 
 /* Simulation List */
 .simulation-list {
@@ -968,6 +1105,10 @@ onMounted(async () => {
   flex: 1;
 }
 
+.simulation-type {
+  display: flex;
+}
+
 .type-badge {
   display: inline-block;
   font-size: 13px;
@@ -978,6 +1119,12 @@ onMounted(async () => {
   background: #f1f5f9;
   border-radius: 10px;
   width: fit-content;
+}
+
+.simulation-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .sim-date {

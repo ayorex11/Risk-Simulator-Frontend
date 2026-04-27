@@ -50,6 +50,7 @@
                   <option value="triggered">Triggered Assessment</option>
                   <option value="incident_followup">Incident Follow-up</option>
                 </select>
+                <span v-if="errors.assessment_type" class="form-error">{{ errors.assessment_type }}</span>
               </div>
 
               <div class="form-group">
@@ -158,6 +159,15 @@ const handleSubmit = async () => {
 
   try {
     const assessment = await assessmentStore.createAssessment(formData.value)
+    
+    if (assessment && assessment.fieldErrors) {
+      Object.keys(assessment.fieldErrors).forEach(key => {
+        const val = assessment.fieldErrors[key]
+        errors.value[key] = Array.isArray(val) ? val[0] : val
+      })
+      return
+    }
+
     // Navigate to questionnaire if status is in_progress, otherwise to detail
     if (formData.value.status === 'in_progress') {
       const questionnairePath = formData.value.template_id

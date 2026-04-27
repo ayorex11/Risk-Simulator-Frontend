@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import authService from '../services/authService'
+import axios from 'axios'
 import { useToast } from 'vue-toastification'
 
 const toast = useToast()
@@ -8,6 +9,7 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: authService.getCurrentUser(),
     isAuthenticated: authService.isAuthenticated(),
+    accessToken: null,
     loading: false,
     error: null,
   }),
@@ -18,6 +20,32 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    async initializeAuth() {
+      const refreshToken = localStorage.getItem('refresh_token')
+      if (refreshToken) {
+        try {
+          const response = await axios.post(
+            `${import.meta.env.VITE_API_BASE_URL}/api/token/refresh/`,
+            { refresh: refreshToken }
+          )
+          this.accessToken = response.data.access
+          this.isAuthenticated = true
+        } catch (error) {
+          this.accessToken = null
+          this.isAuthenticated = false
+          this.user = null
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user')
+        }
+      }
+    },
+    setAccessToken(token) {
+      this.accessToken = token
+    },
+    clearAccessToken() {
+      this.accessToken = null
+    },
+
     async register(userData) {
       this.loading = true
       this.error = null
@@ -46,7 +74,11 @@ export const useAuthStore = defineStore('auth', {
         toast.success('Login successful!')
         return response
       } catch (error) {
-        const errorMsg = error.response?.data?.error || 'Login failed'
+        const data = error.response?.data
+        if (error.response?.status === 400 && data && typeof data === 'object' && !data.error) {
+          return { fieldErrors: data }
+        }
+        const errorMsg = data?.error || data?.detail || 'Login failed'
         this.error = errorMsg
         toast.error(errorMsg)
         throw error
