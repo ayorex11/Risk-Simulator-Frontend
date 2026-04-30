@@ -251,4 +251,26 @@ const isConfirmed = computed(() => {
   width: 16px;
   height: 16px;
 }
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal-container {
+    border-radius: 24px 24px 0 0;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-header-premium { padding: 24px 20px 16px; }
+  .modal-body-premium { padding: 0 20px 20px; }
+  .modal-footer-premium {
+    padding: 16px 20px;
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  .btn-danger-premium { width: 100%; justify-content: center; padding: 14px; font-size: 15px; }
+  .btn-minimal { width: 100%; text-align: center; padding: 12px; }
+}
 </style>

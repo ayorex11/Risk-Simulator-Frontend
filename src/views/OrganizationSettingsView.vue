@@ -684,43 +684,28 @@ onMounted(fetchOrg)
 }
 
 @media (max-width: 768px) {
-  .container {
-    padding: 0 16px;
-  }
+  .container { padding: 0 16px; }
+  .settings-page { padding: 32px 0 80px; }
+  .page-title { font-size: 32px; }
+  .page-subtitle { font-size: 15px; }
+  .settings-card, .stats-card { border-radius: 24px; }
+  .card-header, .settings-form { padding-left: 24px; padding-right: 24px; }
+  .form-row { grid-template-columns: 1fr; }
+  .stats-grid { padding: 20px; }
+  .card-actions { padding: 20px; }
+}
 
-  .settings-page {
-    padding: 32px 0 80px;
-  }
+@media (max-width: 480px) {
+  .container { padding: 0 12px; }
+  .page-title { font-size: 26px; }
+  .card-header { padding: 20px 16px; }
+  .settings-form { padding: 20px 16px; }
+  .form-actions { display: flex; flex-direction: column; }
+  .btn-lg { width: 100%; }
+}
 
-  .page-title {
-    font-size: 36px;
-  }
-
-  .page-subtitle {
-    font-size: 15px;
-  }
-
-  .settings-card,
-  .stats-card {
-    border-radius: 24px;
-  }
-
-  .card-header,
-  .settings-form {
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-grid {
-    padding: 20px;
-  }
-
-  .card-actions {
-    padding: 20px;
-  }
+@media (max-width: 375px) {
+  .container { padding: 0 10px; }
+  .page-title { font-size: 22px; }
 }
 </style>

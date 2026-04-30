@@ -224,4 +224,20 @@ const handleSubmit = async () => {
   margin-top: 24px;
   border-top: 1px solid #e5e7eb;
 }
+
+@media (max-width: 480px) {
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-container {
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .modal-header { padding: 20px 16px; }
+  .modal-header h2 { font-size: 20px; }
+  .modal-body { padding: 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  .modal-footer { flex-direction: column-reverse; gap: 8px; }
+  .modal-footer .btn { width: 100%; justify-content: center; padding: 14px; }
+}
 </style>

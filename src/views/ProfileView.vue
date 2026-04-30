@@ -741,6 +741,28 @@ onMounted(async () => {
   }
 }
 
+@media (max-width: 640px) {
+  .container { padding: 0 16px 80px; }
+  .page-header { padding: 28px 0 20px; }
+  .page-title { font-size: 32px; }
+  .info-header { padding: 20px 24px; }
+  .info-body { padding: 20px 24px; }
+  .v-item { padding: 18px 24px; }
+  .form-row { grid-template-columns: 1fr; }
+  .form-actions-dock { flex-direction: column-reverse; gap: 10px; }
+  .form-actions-dock .btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .container { padding: 0 12px 80px; }
+  .page-title { font-size: 26px; }
+}
+
+@media (max-width: 375px) {
+  .container { padding: 0 10px 80px; }
+  .page-title { font-size: 22px; }
+}
+
 .mb-8 {
   margin-bottom: 32px;
 }

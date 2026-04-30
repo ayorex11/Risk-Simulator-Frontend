@@ -609,7 +609,7 @@ onMounted(() => {
 /* Assessments Grid */
 .assessments-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
   gap: 28px;
   margin-bottom: 56px;
   animation: fadeIn 0.6s ease-out 0.2s both;
@@ -1005,49 +1005,47 @@ onMounted(() => {
 }
 
 @media (max-width: 900px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 24px;
-  }
-  .toolbar {
-    flex-direction: column;
-  }
-  .search-wrapper {
-    max-width: 100%;
-  }
-  .filter-group {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-  .select-wrapper {
-    flex: 1;
-    min-width: 140px;
-  }
-  .btn-clear {
-    width: 100%;
-    justify-content: center;
-  }
-  .clear-text {
-    display: inline;
-  }
-  .assessments-grid {
-    grid-template-columns: 1fr;
-  }
-  .summary-stats {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
+  .header-content { flex-direction: column; align-items: flex-start; gap: 24px; }
+  .toolbar { flex-direction: column; }
+  .search-wrapper { max-width: 100%; }
+  .filter-group { width: 100%; flex-wrap: wrap; }
+  .select-wrapper { flex: 1; min-width: 140px; }
+  .btn-clear { width: 100%; justify-content: center; }
+  .clear-text { display: inline; }
+  .assessments-grid { grid-template-columns: 1fr; }
+  .summary-stats { grid-template-columns: 1fr; gap: 24px; }
 }
 
-@media (max-width: 768px) {
-  .assessments-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 640px) {
+  .container { padding: 0 16px 80px; }
+  .page-title { font-size: 32px; }
+  .page-header { padding: 28px 0 24px; }
+  .toolbar { margin-bottom: 32px; }
+  .card-header { padding: 20px 24px; }
+  .card-body { padding: 0 24px 20px; }
+  .card-footer { padding: 16px 24px; }
+  .header-actions { width: 100%; flex-wrap: wrap; }
+  .header-actions .btn { flex: 1; justify-content: center; }
+  .empty-state { padding: 60px 24px; }
+  .empty-title { font-size: 26px; }
+  .empty-actions { flex-direction: column; }
+  .empty-actions .btn { width: 100%; justify-content: center; }
+  .delete-modal { padding: 24px 20px; border-radius: 20px; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn { width: 100%; justify-content: center; }
+}
 
-  .summary-stats {
-    flex-direction: column;
-    gap: 16px;
-  }
+@media (max-width: 480px) {
+  .container { padding: 0 12px 80px; }
+  .page-title { font-size: 26px; }
+  .select-wrapper { min-width: 0; flex: 1; }
+  .assessment-title { font-size: 20px; }
+  .summary-stats { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+
+@media (max-width: 375px) {
+  .container { padding: 0 10px 80px; }
+  .page-title { font-size: 22px; }
+  .summary-stats { grid-template-columns: 1fr; }
 }
 </style>

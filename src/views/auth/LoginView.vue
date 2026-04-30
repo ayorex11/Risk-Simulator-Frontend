@@ -207,4 +207,16 @@ const handleLogin = async () => {
   padding-top: 24px;
   border-top: 1px solid #e5e7eb;
 }
+
+@media (max-width: 480px) {
+  .auth-page { padding: 16px; align-items: flex-start; padding-top: 40px; }
+  .auth-card { padding: 28px 24px; border-radius: 20px; }
+  .auth-header h1 { font-size: 24px; }
+  .auth-header { margin-bottom: 24px; }
+}
+
+@media (max-width: 375px) {
+  .auth-card { padding: 20px 16px; }
+  .auth-header h1 { font-size: 22px; }
+}
 </style>

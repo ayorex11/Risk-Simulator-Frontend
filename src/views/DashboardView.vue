@@ -1366,4 +1366,24 @@ onMounted(async () => {
     font-size: 24px;
   }
 }
+
+@media (max-width: 480px) {
+  .container { padding: 0 12px 80px; }
+  .page-title { font-size: 28px; }
+  .page-header { padding: 24px 0 20px; }
+  .shortcuts-section { padding: 24px 20px; border-radius: 24px; }
+  .shortcuts-title { font-size: 20px; }
+  .no-org-card { padding: 40px 20px; border-radius: 24px; }
+  .metrics-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .m-val { font-size: 20px; }
+  .stat-value { font-size: 28px; }
+  .stat-card { padding: 20px; }
+  .charts-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 375px) {
+  .container { padding: 0 10px 80px; }
+  .page-title { font-size: 24px; }
+  .metrics-row { grid-template-columns: 1fr; }
+}
 </style>

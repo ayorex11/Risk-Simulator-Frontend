@@ -14,6 +14,24 @@
           <router-link to="/login" class="btn btn-outline">Login</router-link>
           <router-link to="/register" class="btn btn-primary">Get Started</router-link>
         </div>
+        <!-- Hamburger — mobile only -->
+        <button
+          class="nav-hamburger"
+          @click="mobileNavOpen = !mobileNavOpen"
+          :aria-label="mobileNavOpen ? 'Close menu' : 'Open menu'"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+      <!-- Mobile drawer -->
+      <div class="mobile-nav-drawer" :class="{ open: mobileNavOpen }">
+        <a href="#features" @click="mobileNavOpen = false">Features</a>
+        <a href="#how-it-works" @click="mobileNavOpen = false">How It Works</a>
+        <a href="#scenarios" @click="mobileNavOpen = false">Scenarios</a>
+        <router-link to="/login" @click="mobileNavOpen = false">Login</router-link>
+        <router-link to="/register" class="btn btn-primary" @click="mobileNavOpen = false">Get Started</router-link>
       </div>
     </nav>
 
@@ -319,6 +337,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import {
   Shield,
   TrendingUp,
@@ -329,6 +348,8 @@ import {
   ArrowRight,
   Zap,
 } from 'lucide-vue-next'
+
+const mobileNavOpen = ref(false)
 </script>
 
 <style scoped>
@@ -809,22 +830,134 @@ import {
   padding: 0 2rem;
 }
 
-/* Responsive */
+/* ── Hamburger (landing page nav) ─────────────────────────── */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.nav-hamburger:hover { background: rgba(102, 126, 234, 0.08); }
+.nav-hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #667eea;
+  border-radius: 2px;
+  transition: all 0.25s;
+}
+
+/* Mobile nav drawer */
+.mobile-nav-drawer {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: rgba(255,255,255,0.98);
+}
+.mobile-nav-drawer.open { display: flex; }
+.mobile-nav-drawer a {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 0.15s;
+  min-height: 44px;
+  line-height: 20px;
+}
+.mobile-nav-drawer a:hover { background: #f3f4f6; color: #667eea; }
+.mobile-nav-drawer .btn-primary {
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  text-align: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+/* ── 1024px — collapse grids ───────────────────────────────── */
 @media (max-width: 1024px) {
-  .hero-content,
-  .problem-grid,
-  .features-grid,
-  .steps,
-  .scenarios-grid {
-    grid-template-columns: 1fr;
-  }
+  .hero-content { grid-template-columns: 1fr; gap: 2.5rem; }
+  .problem-grid { grid-template-columns: 1fr 1fr; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .scenarios-grid { grid-template-columns: 1fr 1fr; }
+  .footer-content { grid-template-columns: 1fr; gap: 2rem; }
 
-  .hero-title {
-    font-size: 2.5rem;
-  }
+  /* Hide desktop nav links, show hamburger */
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
 
-  .nav-links {
-    display: none;
-  }
+  .hero-title { font-size: 2.5rem; }
+  .hero-image { display: none; }
+}
+
+/* ── 768px ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .container { padding: 0 1.25rem; }
+  .hero { padding: 6rem 0 3rem; }
+  .hero-title { font-size: 2rem; }
+  .hero-subtitle { font-size: 1.1rem; }
+  .hero-stats { grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .stat-value { font-size: 1.5rem; }
+
+  .problem-grid, .features-grid { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .scenarios-grid { grid-template-columns: 1fr; }
+
+  .section-title { font-size: 2rem; }
+  .section-subtitle { font-size: 1.1rem; }
+  .cta-content h2 { font-size: 2rem; }
+  .cta-content p { font-size: 1.1rem; }
+
+  .footer-links { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+}
+
+/* ── 640px ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .hero { padding: 5rem 0 2.5rem; }
+  .hero-title { font-size: 1.75rem; }
+  .hero-buttons { flex-direction: column; align-items: flex-start; }
+  .hero-buttons .btn { width: 100%; justify-content: center; }
+  .hero-stats { grid-template-columns: 1fr; gap: 1rem; }
+
+  .steps { grid-template-columns: 1fr; }
+
+  .section-title { font-size: 1.75rem; }
+  .cta-content h2 { font-size: 1.75rem; }
+
+  .footer-links { grid-template-columns: 1fr; }
+
+  .problem-section,
+  .features-section,
+  .how-section,
+  .scenarios-section,
+  .cta-section { padding: 3rem 0; }
+}
+
+/* ── 480px ──────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .container { padding: 0 1rem; }
+  .hero { padding: 4.5rem 0 2rem; }
+  .hero-title { font-size: 1.5rem; line-height: 1.3; }
+  .section-title { font-size: 1.5rem; }
+  .cta-content h2 { font-size: 1.5rem; }
+  .btn-lg { padding: 0.875rem 1.5rem; font-size: 1rem; }
+  .scenario-card h3 { font-size: 1.25rem; }
+}
+
+/* ── 375px ──────────────────────────────────────────────────── */
+@media (max-width: 375px) {
+  .container { padding: 0 0.75rem; }
+  .hero-title { font-size: 1.35rem; }
+  .logo { font-size: 1.2rem; }
 }
 </style>

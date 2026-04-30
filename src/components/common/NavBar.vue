@@ -116,13 +116,72 @@
             </div>
             <span class="user-name-hide">{{ coreStore.currentUser?.first_name || 'Account' }}</span>
           </router-link>
-          <button @click="handleLogout" class="logout-btn" title="Logout">
+          <button @click="handleLogout" class="logout-btn desktop-logout-btn" title="Logout">
             <LogOut class="icon-sm" />
+          </button>
+          <!-- Hamburger — mobile only -->
+          <button
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            class="hamburger-btn"
+            :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
+          >
+            <X v-if="mobileMenuOpen" class="hamburger-icon" />
+            <Menu v-else class="hamburger-icon" />
           </button>
         </div>
 
       </div>
     </nav>
+
+    <!-- Mobile slide-down menu -->
+    <Transition name="mobile-menu">
+      <div v-if="mobileMenuOpen && authStore.isLoggedIn" class="mobile-panel glass">
+        <router-link to="/dashboard" class="mobile-link" @click="mobileMenuOpen = false">
+          <LayoutDashboard class="mobile-icon" /><span>Dashboard</span>
+        </router-link>
+        <template v-if="hasOrganization">
+          <router-link to="/vendors" class="mobile-link" @click="mobileMenuOpen = false">
+            <Building class="mobile-icon" /><span>Vendors</span>
+          </router-link>
+          <router-link to="/vendors/compare" class="mobile-link" @click="mobileMenuOpen = false">
+            <Scale class="mobile-icon" /><span>Vendor Comparison</span>
+          </router-link>
+          <router-link to="/incidents" class="mobile-link" @click="mobileMenuOpen = false">
+            <Activity class="mobile-icon" /><span>Incidents</span>
+          </router-link>
+          <router-link to="/simulations" class="mobile-link" @click="mobileMenuOpen = false">
+            <Zap class="mobile-icon" /><span>Simulations</span>
+          </router-link>
+          <router-link to="/processes" class="mobile-link" @click="mobileMenuOpen = false">
+            <Cpu class="mobile-icon" /><span>Business Processes</span>
+          </router-link>
+          <router-link to="/processes/dependency-map" class="mobile-link" @click="mobileMenuOpen = false">
+            <Network class="mobile-icon" /><span>Dependency Map</span>
+          </router-link>
+          <router-link to="/risk-heatmap" class="mobile-link" @click="mobileMenuOpen = false">
+            <Grid class="mobile-icon" /><span>Risk Heatmap</span>
+          </router-link>
+          <router-link to="/assessments" class="mobile-link" @click="mobileMenuOpen = false">
+            <ClipboardList class="mobile-icon" /><span>Assessments</span>
+          </router-link>
+          <template v-if="isAdmin">
+            <router-link to="/assessments/summary" class="mobile-link mobile-link-sub" @click="mobileMenuOpen = false">
+              <PieChart class="mobile-icon" /><span>Assessment Summary</span>
+            </router-link>
+            <router-link to="/assessments/questions" class="mobile-link mobile-link-sub" @click="mobileMenuOpen = false">
+              <Archive class="mobile-icon" /><span>Question Library</span>
+            </router-link>
+            <router-link to="/assessments/templates" class="mobile-link mobile-link-sub" @click="mobileMenuOpen = false">
+              <Layout class="mobile-icon" /><span>Frameworks</span>
+            </router-link>
+          </template>
+        </template>
+        <div class="mobile-divider"></div>
+        <button @click="handleLogout" class="mobile-link mobile-logout-link">
+          <LogOut class="mobile-icon" /><span>Logout</span>
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -147,6 +206,8 @@ import {
   ChevronDown,
   Network,
   Grid,
+  Menu,
+  X,
 } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
@@ -159,6 +220,7 @@ const hasOrganization = computed(() => coreStore.hasOrganization)
 // Dropdown open state with a small close-timer so the mouse
 // can travel from the trigger link down to the menu without
 // the dropdown closing mid-move.
+const mobileMenuOpen = ref(false)
 const dropdownOpen = ref(false)
 let closeTimer = null
 
@@ -182,6 +244,7 @@ const cancelCloseTimer = () => {
 
 const handleLogout = async () => {
   dropdownOpen.value = false
+  mobileMenuOpen.value = false
   await authStore.logout()
   router.push('/login')
 }
@@ -488,6 +551,93 @@ const handleLogout = async () => {
   -webkit-backdrop-filter: blur(10px);
 }
 
+/* ── Hamburger button — hidden on desktop ──────────────────── */
+.hamburger-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.hamburger-btn:hover { background: rgba(0, 0, 0, 0.1); }
+.hamburger-icon { width: 22px; height: 22px; }
+
+/* ── Mobile panel ──────────────────────────────────────────── */
+.mobile-panel {
+  pointer-events: auto;
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  right: 0;
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 24px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 999;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 700;
+  transition: background 0.15s;
+  border: none;
+  background: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  min-height: 48px;
+}
+.mobile-link:hover, .mobile-link:active {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--primary);
+}
+.mobile-link.router-link-active {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+}
+.mobile-link-sub {
+  padding-left: 52px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #64748b;
+}
+.mobile-icon { width: 20px; height: 20px; flex-shrink: 0; }
+.mobile-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 0;
+}
+.mobile-logout-link { color: #dc2626; }
+.mobile-logout-link:hover { background: #fef2f2; color: #dc2626; }
+
+/* Mobile menu transition */
+.mobile-menu-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.mobile-menu-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.mobile-menu-enter-from { opacity: 0; transform: translateY(-8px); }
+.mobile-menu-leave-to   { opacity: 0; transform: translateY(-8px); }
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .navbar-brand { min-width: 50px; }
@@ -504,30 +654,19 @@ const handleLogout = async () => {
   .nav-icon { width: 20px; height: 20px; }
   .brand-link { padding: 8px; }
   .chevron-icon { display: none; }
+}
 
-  .dropdown-menu {
-    position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    transform: none;
-    border-radius: 20px 20px 0 0;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
-  .dropdown-enter-from,
-  .dropdown-leave-to {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  .dropdown-enter-to,
-  .dropdown-leave-from {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* At 640px switch to hamburger — hide desktop links, show hamburger */
+@media (max-width: 640px) {
+  .navbar { width: 95%; }
+  .navbar-center { display: none !important; }
+  .nav-dropdown-wrapper { display: none !important; }
+  .hamburger-btn { display: flex; }
+  .desktop-logout-btn { display: none; }
+  .navbar-user { min-width: auto; gap: 8px; }
+  .user-name-hide { display: none; }
+  .user-pill { padding: 4px; }
+  .navbar-brand { min-width: auto; }
+  .brand-text { display: block; font-size: 15px; }
 }
 </style>

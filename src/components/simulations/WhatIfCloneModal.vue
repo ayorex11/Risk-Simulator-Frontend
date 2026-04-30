@@ -444,4 +444,18 @@ const handleSubmit = async () => {
   animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 480px) {
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-container {
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    max-height: 92vh;
+  }
+  .modal-header { padding: 20px 16px; }
+  .modal-body { padding: 16px; }
+  .params-grid { grid-template-columns: 1fr; }
+  .modal-footer { flex-direction: column-reverse; gap: 8px; }
+  .modal-footer .btn { width: 100%; justify-content: center; padding: 14px; }
+}
 </style>

@@ -626,7 +626,7 @@ onMounted(async () => {
 /* Incidents Grid */
 .incidents-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
   gap: 28px;
   animation: fadeIn 0.6s ease-out 0.2s both;
 }
@@ -994,7 +994,26 @@ onMounted(async () => {
   }
 
   .incident-title {
-    font-size: 20px;
+    font-size: 18px;
   }
+
+  .page-title { font-size: 28px; }
+  .header-actions { flex-direction: column; gap: 10px; }
+  .header-actions .btn { width: 100%; justify-content: center; }
+  .empty-state { padding: 60px 24px; }
+  .empty-title { font-size: 24px; }
+  .empty-actions { flex-direction: column; }
+  .empty-actions .btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .container { padding: 0 12px 60px; }
+  .page-title { font-size: 24px; }
+  .select-wrapper { min-width: 0; flex: 1; }
+}
+
+@media (max-width: 375px) {
+  .container { padding: 0 10px 60px; }
+  .page-title { font-size: 22px; }
 }
 </style>

@@ -588,7 +588,7 @@ onMounted(() => simulationStore.fetchSimulations())
 /* Grid */
 .simulations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
   gap: 28px;
   margin-bottom: 56px;
   animation: fadeIn 0.6s ease-out 0.2s both;
@@ -872,21 +872,47 @@ onMounted(() => simulationStore.fetchSimulations())
 
 /* Responsive */
 @media (max-width: 768px) {
-  .page-title {
-    font-size: 32px;
+  .page-title { font-size: 32px; }
+  .header-content { flex-direction: column; align-items: flex-start; }
+  .toolbar { flex-direction: column; }
+  .simulations-grid { grid-template-columns: 1fr; }
+  .fleet-stats { gap: 32px; }
+}
+
+@media (max-width: 640px) {
+  .container { padding: 0 16px 80px; }
+  .page-title { font-size: 28px; }
+  .page-header { padding: 28px 0 24px; }
+  .toolbar { margin-bottom: 32px; }
+  .card-header { padding: 20px 24px; }
+  .card-body { padding: 0 24px 20px; }
+  .card-footer { padding: 16px 24px; }
+  .header-actions { width: 100%; flex-wrap: wrap; }
+  .header-actions .btn { flex: 1; justify-content: center; }
+  .fleet-stats { flex-direction: column; gap: 16px; padding: 24px 0; }
+  .empty-state { padding: 48px 16px; }
+  .empty-title { font-size: 22px; }
+  .empty-actions { flex-direction: column; }
+  .empty-actions .btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .container { padding: 0 12px 80px; }
+  .page-title { font-size: 24px; }
+  .compare-fab {
+    bottom: 16px;
+    right: 12px;
+    left: 12px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    gap: 12px;
   }
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .toolbar {
-    flex-direction: column;
-  }
-  .simulations-grid {
-    grid-template-columns: 1fr;
-  }
-  .fleet-stats {
-    gap: 32px;
-  }
+  .sim-title { font-size: 18px; }
+  .select-wrapper { min-width: 0; flex: 1; }
+}
+
+@media (max-width: 375px) {
+  .container { padding: 0 10px 80px; }
+  .page-title { font-size: 22px; }
 }
 </style>

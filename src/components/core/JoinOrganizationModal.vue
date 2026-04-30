@@ -238,4 +238,21 @@ const handleJoin = async (orgId) => {
     transform: rotate(360deg);
   }
 }
+
+@media (max-width: 480px) {
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-container {
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    max-height: 88vh;
+  }
+  .modal-header { padding: 20px 16px; }
+  .modal-body { padding: 16px; }
+  .org-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .org-item .btn { width: 100%; justify-content: center; }
+}
 </style>

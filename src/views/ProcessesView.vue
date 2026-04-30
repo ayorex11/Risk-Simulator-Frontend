@@ -458,7 +458,8 @@ onMounted(async () => {
 /* Table */
 .table-wrapper {
   background: white; border-radius: 24px; border: 2px solid #e2e8f0;
-  overflow: hidden; animation: fadeIn 0.5s ease-out 0.1s both;
+  overflow-x: auto; animation: fadeIn 0.5s ease-out 0.1s both;
+  -webkit-overflow-scrolling: touch;
 }
 .process-table { width: 100%; border-collapse: collapse; }
 .process-table thead { background: #f8fafc; }
@@ -582,6 +583,33 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .form-row { grid-template-columns: 1fr; }
   .page-title { font-size: 32px; }
-  .header-content { flex-direction: column; align-items: flex-start; }
+  .header-content { flex-direction: column; align-items: flex-start; gap: 20px; }
+}
+
+@media (max-width: 640px) {
+  .container { padding: 0 16px 80px; }
+  .page-title { font-size: 28px; }
+  .page-header { padding: 28px 0 24px; }
+  .header-actions { width: 100%; }
+  .header-actions .btn { width: 100%; justify-content: center; }
+  .fleet-stats { flex-direction: column; gap: 16px; align-items: center; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-container { border-radius: 20px 20px 0 0; max-width: 100%; max-height: 92vh; }
+  .modal-header { padding: 20px 16px; }
+  .modal-body { padding: 16px; }
+  .modal-footer { flex-direction: column-reverse; gap: 8px; }
+  .modal-footer .btn { width: 100%; justify-content: center; padding: 14px; }
+}
+
+@media (max-width: 480px) {
+  .container { padding: 0 12px 80px; }
+  .page-title { font-size: 24px; }
+  .process-table th,
+  .process-table td { padding: 12px 16px; }
+}
+
+@media (max-width: 375px) {
+  .container { padding: 0 10px 80px; }
+  .page-title { font-size: 22px; }
 }
 </style>
