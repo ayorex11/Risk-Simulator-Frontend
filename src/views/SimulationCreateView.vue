@@ -303,12 +303,19 @@
         </button>
       </div>
     </div>
+
+    <!-- Toast Notification -->
+    <Transition name="toast">
+      <div v-if="showToastFlag" class="toast" :class="toastType">
+        {{ toastMessage }}
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useSimulationStore } from '../stores/simulation'
 import { useVendorStore } from '../stores/vendor'
 import NavBar from '../components/common/NavBar.vue'
@@ -316,6 +323,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner.vue'
 import { ArrowLeft, ArrowRight, Zap, Search, CheckCircle } from 'lucide-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 const simulationStore = useSimulationStore()
 const vendorStore = useVendorStore()
 
@@ -340,6 +348,22 @@ const form = ref({
 })
 
 const errors = ref({})
+
+// ── Data loading ───────────────────────────────────────────────────────────
+
+// ── Toast helper ───────────────────────────────────────────────────────────
+const toastMessage = ref('')
+const toastType = ref('success')
+const showToastFlag = ref(false)
+
+const showToast = (message, type = 'success') => {
+  toastMessage.value = message
+  toastType.value = type
+  showToastFlag.value = true
+  setTimeout(() => { showToastFlag.value = false }, 5000)
+}
+
+// ── Cleanup on unmount ─────────────────────────────────────────────────────
 
 const filteredVendors = computed(() => {
   const vendors = vendorStore.vendors || []
@@ -448,7 +472,7 @@ const submitSimulation = async () => {
       })
       return
     }
-    
+
     // Setup background execution message if needed
     if (form.value.auto_execute) {
       // Logic for auto-execution
@@ -1064,6 +1088,38 @@ onMounted(async () => {
 .icon-sm {
   width: 18px;
   height: 18px;
+}
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 16px 28px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+}
+.toast.success {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 2px solid #6ee7b7;
+}
+.toast.error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 2px solid #fca5a5;
+}
+.toast-enter-active, .toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toast-enter-from, .toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(16px);
 }
 
 @keyframes fadeIn {

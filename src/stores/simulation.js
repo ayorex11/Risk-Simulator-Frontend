@@ -54,7 +54,7 @@ export const useSimulationStore = defineStore('simulation', {
       }
     },
 
-    async fetchSimulation(id) {
+    async fetchSimulation(id, { silent = false } = {}) {
       this.loading = true
       this.error = null
       try {
@@ -64,7 +64,9 @@ export const useSimulationStore = defineStore('simulation', {
       } catch (error) {
         const errorMsg = error.response?.data?.error || 'Failed to fetch simulation'
         this.error = errorMsg
-        toast.error(errorMsg)
+        if (!silent) {
+          toast.error(errorMsg)
+        }
         throw error
       } finally {
         this.loading = false
@@ -125,7 +127,7 @@ export const useSimulationStore = defineStore('simulation', {
         if (response.simulation) {
           this.currentSimulation = response.simulation
         }
-        toast.success('Simulation completed successfully!')
+        toast.success('Simulation execution started!')
         return response
       } catch (error) {
         const errorMsg =

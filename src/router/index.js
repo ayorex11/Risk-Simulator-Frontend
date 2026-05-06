@@ -125,6 +125,14 @@ const router = createRouter({
       name: 'SimulationDetail',
       component: () => import('../views/SimulationDetailView.vue'),
       meta: { requiresAuth: true, requiresOrganization: true },
+      beforeEnter: (to, _from, next) => {
+        // Avoid treating the literal "new" as a simulation UUID (Detail view would 404 / wrong API).
+        if (to.params.id === 'new') {
+          next({ name: 'SimulationNew', replace: true })
+          return
+        }
+        next()
+      },
     },
 
     {
